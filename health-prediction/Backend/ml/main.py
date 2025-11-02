@@ -102,22 +102,28 @@ build_label_encoders()
 
 
 class HealthInput(BaseModel):
-    Age: float
-    Gender: str
-    Height_cm: float
-    Weight_kg: float
-    Chronic_Disease: str
-    Genetic_Risk_Factor: str
-    Allergies: str
-    Food_Aversions: str
-    Alcohol_Consumption: str
-    Smoking_Habit: str
-    Dietary_Habits: str
-    Preferred_Cuisine: str
-    Daily_Steps: float
-    Sleep_Hours: float
-    Blood_Pressure_Systolic: float
-    Blood_Pressure_Diastolic: float
+    Age: float | None = None
+    Gender: str | None = None
+    Height: float | None = None
+    Weight: float | None = None
+    BMI: float | None = None
+    Blood_Pressure_Systolic: float | None = None
+    Blood_Pressure_Diastolic: float | None = None
+    Cholesterol_Level: float | None = None
+    Blood_Sugar_Level: float | None = None
+    Chronic_Disease: str | None = None
+    Genetic_Risk_Factor: str | None = None
+    Allergies: str | None = None
+    Food_Aversions: str | None = None
+    Daily_Steps: float | None = None
+    Exercise_Frequency: str | None = None
+    Sleep_Hours: float | None = None
+    Alcohol_Consumption: str | None = None
+    Smoking_Habit: str | None = None
+    Dietary_Habits: str | None = None
+    Preferred_Cuisine: str | None = None
+    userId: str | None = None
+
 
 def safe_label_transform(col, value):
     """Transform categorical value to the numeric label used during training.

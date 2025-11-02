@@ -48,23 +48,31 @@ export const predictHealthRisk = async (req, res) => {
     };
 
     const payload = {
-    Age: Number(healthData.age) || null,
-    Gender: healthData.gender || null,
-    Height_cm: toCm(healthData.height) || null,
-    Weight_kg: Number(healthData.weight) || null,
-    Chronic_Disease: healthData.chronic_disease || null,
-    Genetic_Risk_Factor: healthData.genetic_risk_factor || null,
-    Allergies: healthData.allergies || null,
-    Food_Aversions: healthData.food_aversion || null,
-    Alcohol_Consumption: healthData.alcohol_consumption || null,
-    Smoking_Habit: healthData.smoking_habit || null,
-    Dietary_Habits: healthData.dietary_habits || null,
-    Preferred_Cuisine: healthData.preferred_cuisine || null,
-    Daily_Steps: Number(healthData.daily_steps) || null,
-    Sleep_Hours: Number(healthData.sleep_hours) || null,
-    Blood_Pressure_Systolic: Number(healthData.blood_pressure_systolic) || null,
-    Blood_Pressure_Diastolic: Number(healthData.blood_pressure_diastolic) || null,
-    };
+  Age: safe(Number(healthData.age), null),
+  Gender: normalize(healthData.gender, null),
+  Height: safe(Number(healthData.height), null), // original height from DB (feet)
+  Weight: safe(Number(healthData.weight), null), // in kg (DB should have kg)
+  BMI: healthData.bmi ? Number(healthData.bmi) : null,
+  Blood_Pressure_Systolic: safe(Number(healthData.blood_pressure_systolic), null),
+  Blood_Pressure_Diastolic: safe(Number(healthData.blood_pressure_diastolic), null),
+  Cholesterol_Level: safe(Number(healthData.cholesterol_level), null),
+  Blood_Sugar_Level: safe(Number(healthData.blood_sugar_level), null),
+
+  Chronic_Disease: normalize(healthData.chronic_disease, null),
+  Genetic_Risk_Factor: normalize(healthData.genetic_risk_factor, null),
+  Allergies: normalize(healthData.allergies, null),
+  Food_Aversions: normalize(healthData.food_aversion, null),
+  Daily_Steps: safe(Number(healthData.daily_steps), null),
+  Exercise_Frequency: normalize(healthData.exercise_frequency, null),
+  Sleep_Hours: safe(Number(healthData.sleep_hours), null),
+  Alcohol_Consumption: normalize(healthData.alcohol_consumption, null),
+  Smoking_Habit: normalize(healthData.smoking_habit, null),
+  Dietary_Habits: normalize(healthData.dietary_habits, null),
+  Preferred_Cuisine: normalize(healthData.preferred_cuisine, null),
+
+  userId: healthData.userId || null
+};
+
 
 
 

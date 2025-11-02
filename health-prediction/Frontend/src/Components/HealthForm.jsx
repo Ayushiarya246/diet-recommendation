@@ -169,19 +169,30 @@ const HealthForm = () => {
 
         // Convert strings to numbers and include BMI
         const submissionData = {
-            ...formData,
-            age: formData.age ? Number(formData.age) : null,
-            height: formData.height ? Number(formData.height) : null,
-            weight: formData.weight ? Number(formData.weight) : null,
-            bmi: bmi.value ? Number(bmi.value) : null,
-            blood_pressure_systolic: formData.blood_pressure_systolic ? Number(formData.blood_pressure_systolic) : null,
-            blood_pressure_diastolic: formData.blood_pressure_diastolic ? Number(formData.blood_pressure_diastolic) : null,
-            cholesterol_level: formData.cholesterol_level ? Number(formData.cholesterol_level) : null,
-            blood_sugar_level: formData.blood_sugar_level ? Number(formData.blood_sugar_level) : null,
-            daily_steps: formData.daily_steps ? Number(formData.daily_steps) : null,
-            sleep_hours: formData.sleep_hours ? Number(formData.sleep_hours) : null,
-            userId: user?.id
-        };
+  Age: formData.age ? Number(formData.age) : null,
+  Gender: formData.gender || null,
+  Height: formData.height ? Number(formData.height) : null,
+  Weight: formData.weight ? Number(formData.weight) : null,
+  BMI: bmi.value ? Number(bmi.value) : null,
+  Blood_Pressure_Systolic: formData.blood_pressure_systolic ? Number(formData.blood_pressure_systolic) : null,
+  Blood_Pressure_Diastolic: formData.blood_pressure_diastolic ? Number(formData.blood_pressure_diastolic) : null,
+  Cholesterol_Level: formData.cholesterol_level ? Number(formData.cholesterol_level) : null,
+  Blood_Sugar_Level: formData.blood_sugar_level ? Number(formData.blood_sugar_level) : null,
+  Chronic_Disease: formData.chronic_disease || null,
+  Genetic_Risk_Factor: formData.genetic_risk_factor || null,
+  Allergies: formData.allergies || null,
+  Food_Aversions: formData.food_aversion || null,
+  Daily_Steps: formData.daily_steps ? Number(formData.daily_steps) : null,
+  Exercise_Frequency: formData.exercise_frequency || null,
+  Sleep_Hours: formData.sleep_hours ? Number(formData.sleep_hours) : null,
+  Alcohol_Consumption: formData.alcohol_consumption || null,
+  Smoking_Habit: formData.smoking_habit || null,
+  Dietary_Habits: formData.dietary_habits || null,
+  Preferred_Cuisine: formData.preferred_cuisine || null,
+  userId: user?.id || null,
+};
+
+
 
         const response = await submitHealthForm(submissionData, (path) => navigate(path));
 
