@@ -76,20 +76,34 @@ export const AuthProvider = ({ children }) => {
       }
 
       // ✅ Sanitize numeric values
-      const sanitized = {
-        ...formData,
-        age: Number(formData.age) || 0,
-        height: Number(formData.height) || 0,
-        weight: Number(formData.weight) || 0,
-        bmi: formData.bmi ? Number(formData.bmi) : 0,
-        blood_pressure_systolic: Number(formData.blood_pressure_systolic) || 0,
-        blood_pressure_diastolic: Number(formData.blood_pressure_diastolic) || 0,
-        cholesterol_level: Number(formData.cholesterol_level) || 0,
-        blood_sugar_level: Number(formData.blood_sugar_level) || 0,
-        daily_steps: Number(formData.daily_steps) || 0,
-        sleep_hours: Number(formData.sleep_hours) || 0,
-        userId: user.id
-      };
+      const convertHeight = (h) => {
+  const feet = Math.floor(Number(h));
+  const inches = (Number(h) - feet) * 10;
+  return Math.round((feet * 30.48) + (inches * 2.54));
+};
+
+const sanitized = {
+  Age: Number(formData.age),
+  Gender: formData.gender,
+  Height: formData.height < 100 ? convertHeight(formData.height) : Number(formData.height),
+  Weight: Number(formData.weight),
+  Blood_Pressure_Systolic: Number(formData.blood_pressure_systolic),
+  Blood_Pressure_Diastolic: Number(formData.blood_pressure_diastolic),
+  Cholesterol_Level: Number(formData.cholesterol_level),
+  Blood_Sugar_Level: Number(formData.blood_sugar_level),
+  Chronic_Disease: formData.chronic_disease || "No Disease",
+  Genetic_Risk_Factor: formData.genetic_risk_factor || "No",
+  Allergies: formData.allergies || "No",
+  Food_Aversions: formData.food_aversion || "No",
+  Daily_Steps: Number(formData.daily_steps),
+  Exercise_Frequency: formData.exercise_frequency,
+  Sleep_Hours: Number(formData.sleep_hours),
+  Alcohol_Consumption: formData.alcohol_consumption,
+  Smoking_Habit: formData.smoking_habit,
+  Dietary_Habits: formData.dietary_habits,
+  Preferred_Cuisine: formData.preferred_cuisine,
+  userId: user.id,
+};
 
       console.log("➡️ Submitting Health Form (sanitized):", sanitized);
 
@@ -129,7 +143,8 @@ export const AuthProvider = ({ children }) => {
       }
 
       // ✅ Store prediction for UI page
-      localStorage.setItem("prediction", JSON.stringify(predictData.prediction));
+      localStorage.setItem("prediction", JSON.stringify(predictData.data));
+
 
       if (navigateToPrediction) {
         navigateToPrediction(`/prediction`);

@@ -169,28 +169,28 @@ const HealthForm = () => {
 
         // Convert strings to numbers and include BMI
         const submissionData = {
-  Age: formData.age ? Number(formData.age) : null,
-  Gender: formData.gender || null,
-  Height: formData.height ? Number(formData.height) : null,
-  Weight: formData.weight ? Number(formData.weight) : null,
-  BMI: bmi.value ? Number(bmi.value) : null,
-  Blood_Pressure_Systolic: formData.blood_pressure_systolic ? Number(formData.blood_pressure_systolic) : null,
-  Blood_Pressure_Diastolic: formData.blood_pressure_diastolic ? Number(formData.blood_pressure_diastolic) : null,
-  Cholesterol_Level: formData.cholesterol_level ? Number(formData.cholesterol_level) : null,
-  Blood_Sugar_Level: formData.blood_sugar_level ? Number(formData.blood_sugar_level) : null,
-  Chronic_Disease: formData.chronic_disease || null,
-  Genetic_Risk_Factor: formData.genetic_risk_factor || null,
-  Allergies: formData.allergies || null,
-  Food_Aversions: formData.food_aversion || null,
-  Daily_Steps: formData.daily_steps ? Number(formData.daily_steps) : null,
-  Exercise_Frequency: formData.exercise_frequency || null,
-  Sleep_Hours: formData.sleep_hours ? Number(formData.sleep_hours) : null,
-  Alcohol_Consumption: formData.alcohol_consumption || null,
-  Smoking_Habit: formData.smoking_habit || null,
-  Dietary_Habits: formData.dietary_habits || null,
-  Preferred_Cuisine: formData.preferred_cuisine || null,
-  userId: user?.id || null,
-};
+            age: Number(formData.age),
+            gender: formData.gender,
+            height: Number(formData.height),
+            weight: Number(formData.weight),
+            bmi: bmi.value || 0,
+            blood_pressure_systolic: Number(formData.blood_pressure_systolic) || 0,
+            blood_pressure_diastolic: Number(formData.blood_pressure_diastolic) || 0,
+            cholesterol_level: Number(formData.cholesterol_level) || 0,
+            blood_sugar_level: Number(formData.blood_sugar_level) || 0,
+            chronic_disease: formData.chronic_disease || '',
+            genetic_risk_factor: formData.genetic_risk_factor || '',
+            allergies: formData.allergies || '',
+            food_aversion: formData.food_aversion || '',
+            daily_steps: Number(formData.daily_steps) || 0,
+            exercise_frequency: formData.exercise_frequency || '',
+            sleep_hours: Number(formData.sleep_hours) || 0,
+            alcohol_consumption: formData.alcohol_consumption || '',
+            smoking_habit: formData.smoking_habit || '',
+            dietary_habits: formData.dietary_habits || '',
+            preferred_cuisine: formData.preferred_cuisine || '',
+            userId: user?.id
+        };
 
 
 

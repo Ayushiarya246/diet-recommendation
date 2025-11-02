@@ -31,9 +31,10 @@ export const predictHealthRisk = async (req, res) => {
     };
 
     // convert height in feet (frontend stored feet like 5.5) -> cm as model expects Height_cm
-    const toCm = (feet) => {
-      const f = Number(feet) || 0;
-      return Number((f * 30.48).toFixed(1));
+    const convertHeight = (h) => {
+    const feet = Math.floor(h);
+    const inches = (h - feet) * 10;
+    return Math.round((feet * 30.48) + (inches * 2.54));
     };
 
     // normalize some categorical tokens (make defaults consistent with training)
@@ -47,33 +48,34 @@ export const predictHealthRisk = async (req, res) => {
       return v;
     };
 
-    const payload = {
-  Age: safe(Number(healthData.age), null),
-  Gender: normalize(healthData.gender, null),
-  Height: safe(Number(healthData.height), null), // original height from DB (feet)
-  Weight: safe(Number(healthData.weight), null), // in kg (DB should have kg)
+   const payload = {
+  Age: safe(Number(healthData.age), 0),
+  Gender: normalize(healthData.gender, "Male"),
+  Height: healthData.height < 100
+    ? convertHeight(Number(healthData.height))
+    : Number(healthData.height),
+  Weight: safe(Number(healthData.weight), 0),
+
   BMI: healthData.bmi ? Number(healthData.bmi) : null,
-  Blood_Pressure_Systolic: safe(Number(healthData.blood_pressure_systolic), null),
-  Blood_Pressure_Diastolic: safe(Number(healthData.blood_pressure_diastolic), null),
-  Cholesterol_Level: safe(Number(healthData.cholesterol_level), null),
-  Blood_Sugar_Level: safe(Number(healthData.blood_sugar_level), null),
+  Blood_Pressure_Systolic: safe(Number(healthData.blood_pressure_systolic), 0),
+  Blood_Pressure_Diastolic: safe(Number(healthData.blood_pressure_diastolic), 0),
+  Cholesterol_Level: safe(Number(healthData.cholesterol_level), 0),
+  Blood_Sugar_Level: safe(Number(healthData.blood_sugar_level), 0),
 
-  Chronic_Disease: normalize(healthData.chronic_disease, null),
-  Genetic_Risk_Factor: normalize(healthData.genetic_risk_factor, null),
-  Allergies: normalize(healthData.allergies, null),
-  Food_Aversions: normalize(healthData.food_aversion, null),
-  Daily_Steps: safe(Number(healthData.daily_steps), null),
-  Exercise_Frequency: normalize(healthData.exercise_frequency, null),
-  Sleep_Hours: safe(Number(healthData.sleep_hours), null),
-  Alcohol_Consumption: normalize(healthData.alcohol_consumption, null),
-  Smoking_Habit: normalize(healthData.smoking_habit, null),
-  Dietary_Habits: normalize(healthData.dietary_habits, null),
-  Preferred_Cuisine: normalize(healthData.preferred_cuisine, null),
+  Chronic_Disease: normalize(healthData.chronic_disease, "No Disease"),
+  Genetic_Risk_Factor: normalize(healthData.genetic_risk_factor, "No"),
+  Allergies: normalize(healthData.allergies, "No"),
+  Food_Aversions: normalize(healthData.food_aversion, "No"),
+  Daily_Steps: safe(Number(healthData.daily_steps), 0),
+  Exercise_Frequency: normalize(healthData.exercise_frequency, "Never"),
+  Sleep_Hours: safe(Number(healthData.sleep_hours), 6),
+  Alcohol_Consumption: normalize(healthData.alcohol_consumption, "No"),
+  Smoking_Habit: normalize(healthData.smoking_habit, "No"),
+  Dietary_Habits: normalize(healthData.dietary_habits, "Balanced"),
+  Preferred_Cuisine: normalize(healthData.preferred_cuisine, "Indian"),
 
-  userId: healthData.userId || null
+  userId: userId
 };
-
-
 
 
     const mlUrl = makeMlUrl(ML_SERVER_BASE);
