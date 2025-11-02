@@ -37,23 +37,24 @@ const Website = () => {
         </header>
 
         {/* ✅ React Router Instead of renderContent() */}
-        <Routes>
-          {!user ? (
-            <>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              {/* default redirect to login */}
-              <Route path="*" element={<Navigate to="/login" />} />
-            </>
-          ) : (
-            <>
-              <Route path="/health" element={<HealthForm />} />
-              <Route path="/prediction" element={<PredictionPage />} />
-              {/* default redirect to health if logged in */}
-              <Route path="*" element={<Navigate to="/health" />} />
-            </>
-          )}
-        </Routes>
+     <Routes>
+    {!user ? (
+      <>
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="*" element={<Navigate to="/login" />} />
+      </>
+    ) : (
+      <>
+        <Route path="/" element={<Navigate to="/health" />} />
+        <Route path="/health" element={<HealthForm />} />
+        <Route path="/prediction" element={<PredictionPage />} />
+        <Route path="*" element={<Navigate to="/health" />} />
+      </>
+    )}
+  </Routes>
+
       </main>
 
       <footer className="text-center mt-12 text-sm text-slate-500">
