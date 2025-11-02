@@ -97,7 +97,7 @@ const submitHealthForm = async (formData, navigateToPrediction) => {
 
     // ✅ After saving → Send request to Python server
     console.log("➡️ Requesting Prediction...");
-    const predictRes = await fetch(`${NODE_API}/api/predict/recommendation`, {
+    const predictRes = await fetch(`${NODE_API}/predict/recommendation`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
