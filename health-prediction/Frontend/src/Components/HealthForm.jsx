@@ -275,13 +275,13 @@ console.log("📤 Submitting:", submissionData);
                            <RadioGroupField legend="Chronic Disease" name="chronic_disease" selectedValue={formData.chronic_disease} onChange={handleChange} options={YES_NO_OPTIONS} required error={errors.chronic_disease} />
                            <FormField label="Blood Pressure (Systolic)" name="blood_pressure_systolic" value={formData.blood_pressure_systolic} onChange={handleChange} type="number" placeholder="e.g., 120" required error={errors.blood_pressure_systolic} />
                            <FormField label="Cholesterol Level" name="cholesterol_level" value={formData.cholesterol_level} onChange={handleChange} type="number" placeholder="e.g., 200 mg/dL" />
-                           <FormField label="Allergies (if any)" name="allergies" value={formData.allergies} onChange={handleChange} as="textarea" placeholder="e.g., Peanuts, Shellfish" error={errors.allergies}/>
+                           <FormField label="Allergies (if any)" name="allergies" value={formData.allergies} onChange={handleChange} as="textarea" placeholder="e.g., Peanuts, Shellfish"/>
                         </div>
                         <div className="space-y-6">
                             <RadioGroupField legend="Genetic Risk Factor" name="genetic_risk_factor" selectedValue={formData.genetic_risk_factor} onChange={handleChange} options={YES_NO_OPTIONS} required error={errors.genetic_risk_factor} />
                             <FormField label="Blood Pressure (Diastolic)" name="blood_pressure_diastolic" value={formData.blood_pressure_diastolic} onChange={handleChange} type="number" placeholder="e.g., 80" required error={errors.blood_pressure_diastolic} />
                             <FormField label="Blood Sugar Level" name="blood_sugar_level" value={formData.blood_sugar_level} onChange={handleChange} type="number" placeholder="e.g., 90 mg/dL" />
-                            <FormField label="Food Aversions (if any)" name="food_aversion" value={formData.food_aversion} onChange={handleChange} as="textarea" placeholder="e.g., Cilantro, Mushrooms" error={errors.food_aversion}/>
+                            <FormField label="Food Aversions (if any)" name="food_aversion" value={formData.food_aversion} onChange={handleChange} as="textarea" placeholder="e.g., Cilantro, Mushrooms"/>
                         </div>
                     </div>
                 </fieldset>
