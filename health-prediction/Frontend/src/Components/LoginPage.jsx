@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import FormField from './FormField.jsx';
+import { Link } from "react-router-dom";
+
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: 'demo@example.com', password: 'password123' });
@@ -67,9 +69,9 @@ const LoginPage = () => {
         </div>
         <p className="text-center text-sm text-slate-600 mt-6">
           Don't have an account?{' '}
-          <a href="#register" className="font-semibold text-indigo-600 hover:text-indigo-500">
-            Sign up
-          </a>
+           <Link to="/register" className="text-blue-600 underline">
+              Sign Up
+          </Link>
         </p>
       </form>
     </div>

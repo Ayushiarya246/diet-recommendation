@@ -36,7 +36,7 @@ import authMiddleware from "./middleware/authMiddleware.js";
 // mount routes
 app.use("/api/auth", authRoutes);
 app.use("/api/health" ,authMiddleware, healthRoutes);
-app.use("/api/predict",authMiddleware, predictionRoutes);
+app.use("/api/predict", predictionRoutes);
 
 // test
 app.get("/", (req, res) => res.send("Server works! 🚀"));

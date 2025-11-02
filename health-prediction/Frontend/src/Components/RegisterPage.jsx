@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import FormField from './FormField.jsx';
+import { Link } from "react-router-dom";
+
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
@@ -83,9 +85,9 @@ const RegisterPage = () => {
         </div>
         <p className="text-center text-sm text-slate-600 mt-6">
           Already have an account?{' '}
-          <a href="#login" className="font-semibold text-indigo-600 hover:text-indigo-500">
-            Sign in
-          </a>
+          <Link to="/login" className="text-blue-600 underline">
+            Sign In
+          </Link>
         </p>
       </form>
     </div>

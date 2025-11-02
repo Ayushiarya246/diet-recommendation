@@ -68,8 +68,11 @@ const HealthForm = () => {
     });
 
     useEffect(() => {
-        const heightM = Number(formData.height) * 0.3048;
-        const weightKg = Number(formData.weight);
+        const heightValue = parseFloat(formData.height);
+        const feet = Math.floor(heightValue);
+        const inches = (heightValue - feet) * 10;
+        const heightM = (feet * 0.3048) + (inches * 0.0254);
+
 
         if (heightM > 0 && weightKg > 0) {
             const bmiValue = Number((weightKg / (heightM * heightM)).toFixed(1));
