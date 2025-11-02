@@ -9,8 +9,9 @@ const UserHealth = createUserHealthModel(sequelize);
 User.hasOne(UserHealth, { foreignKey: "userId", onDelete: "CASCADE" });
 UserHealth.belongsTo(User, { foreignKey: "userId" });
 
-sequelize.sync({ alter: true })
-  .then(() => console.log("✅ PostgreSQL synced"))
-  .catch(console.error);
+sequelize.sync()
+  .then(() => console.log("✅ PostgreSQL synced ✅"))
+  .catch((err) => console.error("❌ Sync Error:", err));
+
 
 export { User, UserHealth };

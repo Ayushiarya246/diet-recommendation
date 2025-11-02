@@ -18,8 +18,6 @@ const app = express();
 app.use(cors({
   origin: [
   "https://diet-recommendation-chi.vercel.app",
-  "https://diet-recommendation-1-7t28.onrender.com",  // ✅ Add Python URL
-  "http://localhost:5173"
 ],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
