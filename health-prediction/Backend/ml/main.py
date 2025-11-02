@@ -9,9 +9,13 @@ import os
 app = FastAPI()
 
 # ✅ Enable CORS for frontend calls
+origins = [
+    "https://diet-recommendation-chi.vercel.app"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Later replace with frontend domain
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
