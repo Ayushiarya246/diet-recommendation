@@ -141,7 +141,6 @@ const HealthForm = () => {
     e.preventDefault();
     setSubmissionStatus(null);
     if (!validateForm()) return;
-
     setIsLoading(true);
 
     try {
@@ -152,24 +151,37 @@ const HealthForm = () => {
             return;
         }
 
-        const submissionData = { ...formData, bmi: bmi.value ,userId: user?.id};
-        const response = await submitHealthForm(submissionData);
+        // Convert strings to numbers and include BMI
+        const submissionData = {
+            ...formData,
+            age: formData.age ? Number(formData.age) : null,
+            height: formData.height ? Number(formData.height) : null,
+            weight: formData.weight ? Number(formData.weight) : null,
+            bmi: bmi.value ? Number(bmi.value) : null,
+            blood_pressure_systolic: formData.blood_pressure_systolic ? Number(formData.blood_pressure_systolic) : null,
+            blood_pressure_diastolic: formData.blood_pressure_diastolic ? Number(formData.blood_pressure_diastolic) : null,
+            cholesterol_level: formData.cholesterol_level ? Number(formData.cholesterol_level) : null,
+            blood_sugar_level: formData.blood_sugar_level ? Number(formData.blood_sugar_level) : null,
+            daily_steps: formData.daily_steps ? Number(formData.daily_steps) : null,
+            sleep_hours: formData.sleep_hours ? Number(formData.sleep_hours) : null,
+            userId: user?.id
+        };
+
+        const response = await submitHealthForm(submissionData, (path) => navigate(path));
 
         if (response.success) {
-            navigate("/prediction", {
-                state: { healthData: submissionData }
-            });
+            // submitHealthForm already navigates to /prediction
             return;
         } else {
             setSubmissionStatus(response);
         }
     } catch (error) {
+        console.error("Health form submission error:", error);
         setSubmissionStatus({ success: false, message: 'Unexpected error occurred' });
     } finally {
         setIsLoading(false);
     }
 };
-
 
     return (
         <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10 border border-white/80">

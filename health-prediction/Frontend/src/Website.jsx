@@ -4,7 +4,7 @@ import HealthForm from "./Components/HealthForm.jsx";
 import LoginPage from "./Components/LoginPage.jsx";
 import RegisterPage from "./Components/RegisterPage.jsx";
 import { useAuth } from './context/AuthContext.jsx';
-import PredictionPage from "./Components/PredictionPage.jsx"
+import ResultPage from "./Components/PredictionPage.jsx"
 
 const Website = () => {
   const { user, logout } = useAuth();
@@ -49,7 +49,7 @@ const Website = () => {
       <>
         <Route path="/" element={<Navigate to="/health" />} />
         <Route path="/health" element={<HealthForm />} />
-        <Route path="/prediction" element={<PredictionPage />} />
+        <Route path="/prediction" element={<ResultPage />} />
         <Route path="*" element={<Navigate to="/health" />} />
       </>
     )}
