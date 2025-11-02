@@ -48,23 +48,25 @@ export const predictHealthRisk = async (req, res) => {
     };
 
     const payload = {
-      Age: Number(safe(healthData.age, 0)),
-      Gender: normalize(healthData.gender, "Unknown"),
-      Height_cm: toCm(healthData.height),
-      Weight_kg: Number(safe(healthData.weight, 0)),
-      Chronic_Disease: normalize(healthData.chronic_disease, "No"),
-      Genetic_Risk_Factor: normalize(healthData.genetic_risk_factor, "No"),
-      Allergies: normalize(healthData.allergies, "No"),
-      Food_Aversions: normalize(healthData.food_aversion, "No"),
-      Alcohol_Consumption: normalize(healthData.alcohol_consumption, "No"),
-      Smoking_Habit: normalize(healthData.smoking_habit, "No"),
-      Dietary_Habits: normalize(healthData.dietary_habits, "Other"),
-      Preferred_Cuisine: normalize(healthData.preferred_cuisine, "Other"),
-      Daily_Steps: Number(safe(healthData.daily_steps, 0)),
-      Sleep_Hours: Number(safe(healthData.sleep_hours, 0)),
-      Blood_Pressure_Systolic: Number(safe(healthData.blood_pressure_systolic, 0)),
-      Blood_Pressure_Diastolic: Number(safe(healthData.blood_pressure_diastolic, 0)),
+    Age: Number(healthData.age) || null,
+    Gender: healthData.gender || null,
+    Height_cm: toCm(healthData.height) || null,
+    Weight_kg: Number(healthData.weight) || null,
+    Chronic_Disease: healthData.chronic_disease || null,
+    Genetic_Risk_Factor: healthData.genetic_risk_factor || null,
+    Allergies: healthData.allergies || null,
+    Food_Aversions: healthData.food_aversion || null,
+    Alcohol_Consumption: healthData.alcohol_consumption || null,
+    Smoking_Habit: healthData.smoking_habit || null,
+    Dietary_Habits: healthData.dietary_habits || null,
+    Preferred_Cuisine: healthData.preferred_cuisine || null,
+    Daily_Steps: Number(healthData.daily_steps) || null,
+    Sleep_Hours: Number(healthData.sleep_hours) || null,
+    Blood_Pressure_Systolic: Number(healthData.blood_pressure_systolic) || null,
+    Blood_Pressure_Diastolic: Number(healthData.blood_pressure_diastolic) || null,
     };
+
+
 
     const mlUrl = makeMlUrl(ML_SERVER_BASE);
     console.log("➡️ Sending Payload to ML API:", mlUrl, payload);
