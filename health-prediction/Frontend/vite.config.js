@@ -2,14 +2,15 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// ✅ Config for Vercel Deployment
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss()
   ],
+  base: "./", // ✅ Important for deployment
   server: {
     host: true,
-    port: 5173
+    port: 5173,
   }
 })
+
