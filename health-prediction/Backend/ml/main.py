@@ -10,8 +10,11 @@ app = FastAPI()
 
 # ✅ Enable CORS for frontend calls
 origins = [
-    "https://diet-recommendation-chi.vercel.app"
+    "https://diet-recommendation-chi.vercel.app",
+    "https://diet-recommendation-jyx1.onrender.com",
+    "http://localhost:5173"
 ]
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,6 +23,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # ✅ Load trained model and encoder
 model = joblib.load("random_forest_model.pkl")
