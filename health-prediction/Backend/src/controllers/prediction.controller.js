@@ -48,34 +48,35 @@ export const predictHealthRisk = async (req, res) => {
       return v;
     };
 
-   const payload = {
-  Age: safe(Number(healthData.age), 0),
-  Gender: normalize(healthData.gender, "Male"),
-  Height: healthData.height < 100
+const payload = {
+  age: safe(Number(healthData.age), 0),
+  gender: normalize(healthData.gender, "Male"),
+  height: healthData.height < 100
     ? convertHeight(Number(healthData.height))
     : Number(healthData.height),
-  Weight: safe(Number(healthData.weight), 0),
+  weight: safe(Number(healthData.weight), 0),
 
-  BMI: healthData.bmi ? Number(healthData.bmi) : null,
-  Blood_Pressure_Systolic: safe(Number(healthData.blood_pressure_systolic), 0),
-  Blood_Pressure_Diastolic: safe(Number(healthData.blood_pressure_diastolic), 0),
-  Cholesterol_Level: safe(Number(healthData.cholesterol_level), 0),
-  Blood_Sugar_Level: safe(Number(healthData.blood_sugar_level), 0),
+  bmi: healthData.bmi ? Number(healthData.bmi) : 0,
+  blood_pressure_systolic: safe(Number(healthData.blood_pressure_systolic), 0),
+  blood_pressure_diastolic: safe(Number(healthData.blood_pressure_diastolic), 0),
+  cholesterol_level: safe(Number(healthData.cholesterol_level), 0),
+  blood_sugar_level: safe(Number(healthData.blood_sugar_level), 0),
 
-  Chronic_Disease: normalize(healthData.chronic_disease, "No Disease"),
-  Genetic_Risk_Factor: normalize(healthData.genetic_risk_factor, "No"),
-  Allergies: normalize(healthData.allergies, "No"),
-  Food_Aversions: normalize(healthData.food_aversion, "No"),
-  Daily_Steps: safe(Number(healthData.daily_steps), 0),
-  Exercise_Frequency: normalize(healthData.exercise_frequency, "Never"),
-  Sleep_Hours: safe(Number(healthData.sleep_hours), 6),
-  Alcohol_Consumption: normalize(healthData.alcohol_consumption, "No"),
-  Smoking_Habit: normalize(healthData.smoking_habit, "No"),
-  Dietary_Habits: normalize(healthData.dietary_habits, "Balanced"),
-  Preferred_Cuisine: normalize(healthData.preferred_cuisine, "Indian"),
+  chronic_disease: normalize(healthData.chronic_disease, "No Disease"),
+  genetic_risk_factor: normalize(healthData.genetic_risk_factor, "No"),
+  allergies: normalize(healthData.allergies, "No"),
+  food_aversion: normalize(healthData.food_aversion, "No"),
+  daily_steps: safe(Number(healthData.daily_steps), 0),
+  exercise_frequency: normalize(healthData.exercise_frequency, "Never"),
+  sleep_hours: safe(Number(healthData.sleep_hours), 6),
+  alcohol_consumption: normalize(healthData.alcohol_consumption, "No"),
+  smoking_habit: normalize(healthData.smoking_habit, "No"),
+  dietary_habits: normalize(healthData.dietary_habits, "Balanced"),
+  preferred_cuisine: normalize(healthData.preferred_cuisine, "Indian"),
 
-  userId: userId
+  userId: userId,
 };
+
 
 
     const mlUrl = makeMlUrl(ML_SERVER_BASE);

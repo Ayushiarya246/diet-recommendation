@@ -40,14 +40,13 @@ const initialFormData = {
 };
 
 const REQUIRED_FIELDS = [
-    "Age", "Gender", "Height", "Weight", "BMI",
-    "Blood_Pressure_Systolic", "Blood_Pressure_Diastolic",
-    "Cholesterol_Level", "Blood_Sugar_Level",
-    "Chronic_Disease", "Genetic_Risk_Factor",
-    "Allergies", "Food_Aversions",
-    "Daily_Steps", "Exercise_Frequency", "Sleep_Hours",
-    "Alcohol_Consumption", "Smoking_Habit",
-    "Dietary_Habits", "Preferred_Cuisine"
+    "age", "gender", "height", "weight",
+    "chronic_disease", "blood_pressure_systolic", "blood_pressure_diastolic",
+    "cholesterol_level", "blood_sugar_level",
+    "genetic_risk_factor", "allergies", "food_aversion",
+    "daily_steps", "exercise_frequency", "sleep_hours",
+    "alcohol_consumption", "smoking_habit",
+    "dietary_habits", "preferred_cuisine"
 ];
 
 const SectionHeader = ({ title, icon }) => (
@@ -172,36 +171,42 @@ const HealthForm = () => {
         }
 
         // Convert strings to numbers and include BMI
-   const submissionData = {
-    Age: Number(formData.age),
-    Gender: formData.gender,
-    Height: Number(formData.height),
-    Weight: Number(formData.weight),
-    BMI: bmi.value || 0,
+   const safeNumber = (val) => val ? Number(val) : null;
+const safeString = (val) => val?.trim() || null;
 
-    Chronic_Disease: formData.chronic_disease,
-    Blood_Pressure_Systolic: Number(formData.blood_pressure_systolic),
-    Blood_Pressure_Diastolic: Number(formData.blood_pressure_diastolic),
+const submissionData = {
+  age: safeNumber(formData.age),
+  gender: safeString(formData.gender),
+  height: safeNumber(formData.height),
+  weight: safeNumber(formData.weight),
+  
+  // BMI should be re-calculated in backend too
+  bmi: formData.height && formData.weight ? Number(bmi.value) : null,
 
-    Cholesterol_Level: Number(formData.cholesterol_level),
-    Blood_Sugar_Level: Number(formData.blood_sugar_level),
+  chronic_disease: safeString(formData.chronic_disease),
+  blood_pressure_systolic: safeNumber(formData.blood_pressure_systolic),
+  blood_pressure_diastolic: safeNumber(formData.blood_pressure_diastolic),
 
-    Genetic_Risk_Factor: formData.genetic_risk_factor,
-    Allergies: formData.allergies,
-    Food_Aversions: formData.food_aversion,
+  cholesterol_level: safeNumber(formData.cholesterol_level),
+  blood_sugar_level: safeNumber(formData.blood_sugar_level),
 
-    Daily_Steps: Number(formData.daily_steps),
-    Exercise_Frequency: formData.exercise_frequency,
-    Sleep_Hours: Number(formData.sleep_hours),
+  genetic_risk_factor: safeString(formData.genetic_risk_factor),
+  allergies: safeString(formData.allergies),
+  food_aversion: safeString(formData.food_aversion),
 
-    Alcohol_Consumption: formData.alcohol_consumption,
-    Smoking_Habit: formData.smoking_habit,
-    Dietary_Habits: formData.dietary_habits,
-    Preferred_Cuisine: formData.preferred_cuisine,
+  daily_steps: safeNumber(formData.daily_steps),
+  exercise_frequency: safeString(formData.exercise_frequency),
+  sleep_hours: safeNumber(formData.sleep_hours),
 
-    userId: user?.id
+  alcohol_consumption: safeString(formData.alcohol_consumption),
+  smoking_habit: safeString(formData.smoking_habit),
+  dietary_habits: safeString(formData.dietary_habits),
+  preferred_cuisine: safeString(formData.preferred_cuisine),
+
+  userId: user?.id || null,
 };
 
+console.log("📤 Submitting:", submissionData);
 
 
         const response = await submitHealthForm(submissionData, (path) => navigate(path));
