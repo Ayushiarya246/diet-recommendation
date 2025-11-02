@@ -1,15 +1,28 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import joblib
 import pandas as pd
+import uvicorn
+import os
 
 app = FastAPI()
 
-# Load trained model and encoder
+# ✅ Enable CORS for frontend calls
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Later replace with frontend domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ✅ Load trained model and encoder
 model = joblib.load("random_forest_model.pkl")
 meal_plan_encoder = joblib.load("meal_plan_encoder.pkl")
 
-# Expected structure (same as training)
+
+# ✅ Input structure validation
 class HealthInput(BaseModel):
     Age: float
     Gender: str
@@ -39,7 +52,7 @@ async def predict_recommendation(data: HealthInput):
 
     input_data = pd.DataFrame([data.dict()])
 
-    # columns to one-hot encode
+    # ✅ One-hot encode categorical variables
     categorical_cols = [
         "Gender", "Chronic_Disease", "Genetic_Risk_Factor", "Allergies",
         "Food_Aversions", "Alcohol_Consumption", "Smoking_Habit",
@@ -48,26 +61,24 @@ async def predict_recommendation(data: HealthInput):
 
     input_data = pd.get_dummies(input_data, columns=categorical_cols, drop_first=True)
 
-    # ✅ Correct column alignment for MultiOutputRegressor (internal RF models)
+    # ✅ Align with model input columns
     model_feature_cols = model.estimators_[0].feature_names_in_
 
-    # Add missing columns
     for col in model_feature_cols:
         if col not in input_data.columns:
             input_data[col] = 0
 
     input_data = input_data[model_feature_cols]
 
-    # ✅ Predict
+    # ✅ Predict values
     pred = model.predict(input_data)[0]
 
-    meal_plan_label = int(pred[0])  # First output = encoded label
+    meal_plan_label = int(pred[0])
     recommended_calories = float(pred[1])
     recommended_protein = float(pred[2])
     recommended_carbs = float(pred[3])
     recommended_fats = float(pred[4])
 
-    # Decode meal plan
     meal_plan = meal_plan_encoder.inverse_transform([meal_plan_label])[0]
 
     return {
@@ -77,3 +88,12 @@ async def predict_recommendation(data: HealthInput):
         "Recommended_Carbs": recommended_carbs,
         "Recommended_Fats": recommended_fats
     }
+
+
+# ✅ Deployment Entry for Render
+if __name__ == "__main__":
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 10000))
+    )
