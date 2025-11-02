@@ -112,30 +112,46 @@ const HealthForm = () => {
     
     const validateForm = () => {
     const newErrors = {};
+
     REQUIRED_FIELDS.forEach(field => {
-        if (!formData[field] || formData[field].toString().trim() === '') {
+        if (
+            formData[field] === undefined ||
+            formData[field] === null ||
+            formData[field].toString().trim() === ''
+        ) {
             newErrors[field] = 'This field is required.';
         }
     });
 
-    if (formData.age && (isNaN(Number(formData.age)) || Number(formData.age) <= 0 || !Number.isInteger(Number(formData.age)))) {
+    if (
+        formData.age &&
+        (isNaN(Number(formData.age)) || Number(formData.age) <= 0 || !Number.isInteger(Number(formData.age)))
+    ) {
         newErrors.age = 'Please enter a valid age.';
     }
-    if (formData.height && (isNaN(Number(formData.height)) || Number(formData.height) <= 0)) {
+    if (
+        formData.height &&
+        (isNaN(Number(formData.height)) || Number(formData.height) <= 0)
+    ) {
         newErrors.height = 'Please enter a valid height in feet.';
     }
-    if (formData.weight && (isNaN(Number(formData.weight)) || Number(formData.weight) <= 0)) {
+    if (
+        formData.weight &&
+        (isNaN(Number(formData.weight)) || Number(formData.weight) <= 0)
+    ) {
         newErrors.weight = 'Please enter a valid weight in kg.';
     }
-    if (formData.sleep_hours && (isNaN(Number(formData.sleep_hours)) || Number(formData.sleep_hours) < 0 || Number(formData.sleep_hours) > 24)) {
+    if (
+        formData.sleep_hours &&
+        (isNaN(Number(formData.sleep_hours)) || Number(formData.sleep_hours) < 0 || Number(formData.sleep_hours) > 24)
+    ) {
         newErrors.sleep_hours = 'Please enter a valid number of hours (0-24).';
     }
 
     setErrors(newErrors);
-
-    // ✅ Return true if no errors exist
     return Object.keys(newErrors).length === 0;
 };
+
 
     const handleSubmit = async (e) => {
     e.preventDefault();
