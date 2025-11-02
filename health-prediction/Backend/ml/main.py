@@ -58,7 +58,8 @@ class HealthInput(BaseModel):
     smoking_habit: str | None = None
     dietary_habits: str | None = None
     preferred_cuisine: str | None = None
-    userId: str | None = None
+    userId: int | str | None = None   # ✅ FIXED
+
 
 # ✅ Column rename mapping (camelCase → Model format)
 rename_map = {
