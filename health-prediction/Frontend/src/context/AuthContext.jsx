@@ -1,6 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const NODE_API = import.meta.env.VITE_NODE_API_URL;
+//const PY_API = import.meta.env.VITE_PYTHON_API_URL;
+
 
 const AuthContext = createContext(undefined);
 
@@ -67,96 +69,67 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ✅ SUBMIT HEALTH FORM + attach userId automatically
   // ✅ SUBMIT HEALTH FORM + Predict + Navigate 🧠
-  const submitHealthForm = async (formData, navigateToPrediction) => {
-    try {
-      const token = localStorage.getItem("authToken");
-      if (!token || !user?.id) {
-        return { success: false, message: "User not authenticated ❌" };
-      }
-
-      // ✅ Sanitize numeric values
-      const convertHeight = (h) => {
-  const feet = Math.floor(Number(h));
-  const inches = (Number(h) - feet) * 10;
-  return Math.round((feet * 30.48) + (inches * 2.54));
-};
-
-const sanitized = {
-  age: Number(formData.age),
-  gender: formData.gender,
-  height: formData.height < 100 ? convertHeight(formData.height) : Number(formData.height),
-  weight: Number(formData.weight),
-  blood_pressure_systolic: Number(formData.blood_pressure_systolic),
-  blood_pressure_diastolic: Number(formData.blood_pressure_diastolic),
-  cholesterol_level: Number(formData.cholesterol_level),
-  blood_sugar_level: Number(formData.blood_sugar_level),
-  chronic_disease: formData.chronic_disease || "No Disease",
-  genetic_risk_factor: formData.genetic_risk_factor || "No",
-  allergies: formData.allergies || "No",
-  food_aversion: formData.food_aversion || "No",
-  daily_steps: Number(formData.daily_steps),
-  exercise_frequency: formData.exercise_frequency,
-  sleep_hours: Number(formData.sleep_hours),
-  alcohol_consumption: formData.alcohol_consumption,
-  smoking_habit: formData.smoking_habit,
-  dietary_habits: formData.dietary_habits,
-  preferred_cuisine: formData.preferred_cuisine,
-  userId: user.id
-};
-
-      console.log("➡️ Submitting Health Form (sanitized):", sanitized);
-
-      // ✅ Save data to DB
-      const res = await fetch(`${NODE_API}/api/health/form`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(sanitized),
-      });
-
-      const data = await res.json();
-      console.log("⬅️ Health Form Response:", data);
-
-      if (!res.ok) {
-        return { success: false, message: data.message || "Health data failed ❌" };
-      }
-
-      // ✅ Send FULL sanitized data for ML prediction
-      console.log("➡️ Requesting Prediction from Node backend...");
-      const predictRes = await fetch(`${NODE_API}/api/predict/recommendation`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(sanitized),
-      });
-
-      const predictData = await predictRes.json();
-      console.log("⬅️ Prediction Result:", predictData);
-
-      if (!predictRes.ok) {
-        return { success: false, message: predictData.message || "Prediction failed ❌" };
-      }
-
-      // ✅ Store prediction for UI page
-      localStorage.setItem("prediction", JSON.stringify(predictData.data));
-
-
-      if (navigateToPrediction) {
-        navigateToPrediction(`/prediction`);
-      }
-
-      return { success: true, message: "Prediction ready ✅" };
-
-    } catch (err) {
-      console.error("submitHealthForm error:", err);
-      return { success: false, message: err.message || "Server error ❌" };
+const submitHealthForm = async (formData, navigateToPrediction) => {
+  try {
+    const token = localStorage.getItem("authToken");
+    if (!token || !user?.id) {
+      return { success: false, message: "User not authenticated ❌" };
     }
-  };
+
+    const fullData = { ...formData, userId: user.id };
+    console.log("➡️ Submitting Health Form:", fullData);
+
+    const res = await fetch(`${NODE_API}/api/health/form`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(fullData),
+    });
+
+    const data = await res.json();
+    console.log("⬅️ Health Form Response:", data);
+
+    if (!res.ok) {
+      return { success: false, message: data.message || "Health data failed ❌" };
+    }
+
+    // ✅ After saving → Send request to Python server
+    console.log("➡️ Requesting Prediction...");
+    const predictRes = await fetch(`${NODE_API}/api/predict/recommendation`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(fullData), // ✅ send data!
+    });
+
+
+
+    const predictData = await predictRes.json();
+    console.log("⬅️ Prediction Result:", predictData);
+
+    if (!predictRes.ok) {
+      return { success: false, message: predictData.error || "Prediction failed ❌" };
+    }
+
+    localStorage.setItem("prediction", JSON.stringify(predictData.prediction));
+
+    if (navigateToPrediction) {
+      navigateToPrediction(`/prediction`);
+    }
+
+    return { success: true, message: "Prediction ready ✅" };
+
+  } catch (err) {
+    return { success: false, message: err.message || "Server error ❌" };
+  }
+};
+
 
   const logout = () => {
     setUser(null);

@@ -40,13 +40,10 @@ const initialFormData = {
 };
 
 const REQUIRED_FIELDS = [
-    "age", "gender", "height", "weight",
-    "chronic_disease", "blood_pressure_systolic", "blood_pressure_diastolic",
-    "cholesterol_level", "blood_sugar_level",
-    "genetic_risk_factor", "allergies", "food_aversion",
-    "daily_steps", "exercise_frequency", "sleep_hours",
-    "alcohol_consumption", "smoking_habit",
-    "dietary_habits", "preferred_cuisine"
+    'age', 'gender', 'height', 'weight', 'chronic_disease', 
+    'blood_pressure_systolic', 'blood_pressure_diastolic', 
+    'genetic_risk_factor','daily_steps', 'exercise_frequency', 'sleep_hours', 
+    'alcohol_consumption', 'smoking_habit', 'dietary_habits', 'preferred_cuisine'
 ];
 
 const SectionHeader = ({ title, icon }) => (
@@ -115,51 +112,36 @@ const HealthForm = () => {
     
     const validateForm = () => {
     const newErrors = {};
-
     REQUIRED_FIELDS.forEach(field => {
-        if (
-            formData[field] === undefined ||
-            formData[field] === null ||
-            formData[field].toString().trim() === ''
-        ) {
+        if (!formData[field] || formData[field].toString().trim() === '') {
             newErrors[field] = 'This field is required.';
         }
     });
 
-    if (
-        formData.age &&
-        (isNaN(Number(formData.age)) || Number(formData.age) <= 0 || !Number.isInteger(Number(formData.age)))
-    ) {
+    if (formData.age && (isNaN(Number(formData.age)) || Number(formData.age) <= 0 || !Number.isInteger(Number(formData.age)))) {
         newErrors.age = 'Please enter a valid age.';
     }
-    if (
-        formData.height &&
-        (isNaN(Number(formData.height)) || Number(formData.height) <= 0)
-    ) {
+    if (formData.height && (isNaN(Number(formData.height)) || Number(formData.height) <= 0)) {
         newErrors.height = 'Please enter a valid height in feet.';
     }
-    if (
-        formData.weight &&
-        (isNaN(Number(formData.weight)) || Number(formData.weight) <= 0)
-    ) {
+    if (formData.weight && (isNaN(Number(formData.weight)) || Number(formData.weight) <= 0)) {
         newErrors.weight = 'Please enter a valid weight in kg.';
     }
-    if (
-        formData.sleep_hours &&
-        (isNaN(Number(formData.sleep_hours)) || Number(formData.sleep_hours) < 0 || Number(formData.sleep_hours) > 24)
-    ) {
+    if (formData.sleep_hours && (isNaN(Number(formData.sleep_hours)) || Number(formData.sleep_hours) < 0 || Number(formData.sleep_hours) > 24)) {
         newErrors.sleep_hours = 'Please enter a valid number of hours (0-24).';
     }
 
     setErrors(newErrors);
+
+    // ✅ Return true if no errors exist
     return Object.keys(newErrors).length === 0;
 };
-
 
     const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmissionStatus(null);
     if (!validateForm()) return;
+
     setIsLoading(true);
 
     try {
@@ -170,60 +152,24 @@ const HealthForm = () => {
             return;
         }
 
-        // Convert strings to numbers and include BMI
-   const safeNumber = (val) => val ? Number(val) : null;
-const safeString = (val) => val?.trim() || null;
-
-const submissionData = {
-  age: safeNumber(formData.age),
-  gender: safeString(formData.gender),
-  height: safeNumber(formData.height),
-  weight: safeNumber(formData.weight),
-  
-  // BMI should be re-calculated in backend too
-  bmi: formData.height && formData.weight ? Number(bmi.value) : null,
-
-  chronic_disease: safeString(formData.chronic_disease),
-  blood_pressure_systolic: safeNumber(formData.blood_pressure_systolic),
-  blood_pressure_diastolic: safeNumber(formData.blood_pressure_diastolic),
-
-  cholesterol_level: safeNumber(formData.cholesterol_level),
-  blood_sugar_level: safeNumber(formData.blood_sugar_level),
-
-  genetic_risk_factor: safeString(formData.genetic_risk_factor),
-  allergies: safeString(formData.allergies),
-  food_aversion: safeString(formData.food_aversion),
-
-  daily_steps: safeNumber(formData.daily_steps),
-  exercise_frequency: safeString(formData.exercise_frequency),
-  sleep_hours: safeNumber(formData.sleep_hours),
-
-  alcohol_consumption: safeString(formData.alcohol_consumption),
-  smoking_habit: safeString(formData.smoking_habit),
-  dietary_habits: safeString(formData.dietary_habits),
-  preferred_cuisine: safeString(formData.preferred_cuisine),
-
-  userId: user?.id || null,
-};
-
-console.log("📤 Submitting:", submissionData);
-
-
-        const response = await submitHealthForm(submissionData, (path) => navigate(path));
+        const submissionData = { ...formData, bmi: bmi.value ,userId: user?.id};
+        const response = await submitHealthForm(submissionData);
 
         if (response.success) {
-            // submitHealthForm already navigates to /prediction
+            navigate("/prediction", {
+                state: { healthData: submissionData }
+            });
             return;
         } else {
             setSubmissionStatus(response);
         }
     } catch (error) {
-        console.error("Health form submission error:", error);
         setSubmissionStatus({ success: false, message: 'Unexpected error occurred' });
     } finally {
         setIsLoading(false);
     }
 };
+
 
     return (
         <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10 border border-white/80">
@@ -275,13 +221,13 @@ console.log("📤 Submitting:", submissionData);
                            <RadioGroupField legend="Chronic Disease" name="chronic_disease" selectedValue={formData.chronic_disease} onChange={handleChange} options={YES_NO_OPTIONS} required error={errors.chronic_disease} />
                            <FormField label="Blood Pressure (Systolic)" name="blood_pressure_systolic" value={formData.blood_pressure_systolic} onChange={handleChange} type="number" placeholder="e.g., 120" required error={errors.blood_pressure_systolic} />
                            <FormField label="Cholesterol Level" name="cholesterol_level" value={formData.cholesterol_level} onChange={handleChange} type="number" placeholder="e.g., 200 mg/dL" />
-                           <FormField label="Allergies (if any)" name="allergies" value={formData.allergies} onChange={handleChange} as="textarea" placeholder="e.g., Peanuts, Shellfish"/>
+                           <FormField label="Allergies (if any)" name="allergies" value={formData.allergies} onChange={handleChange} as="textarea" placeholder="e.g., Peanuts, Shellfish" error={errors.allergies}/>
                         </div>
                         <div className="space-y-6">
                             <RadioGroupField legend="Genetic Risk Factor" name="genetic_risk_factor" selectedValue={formData.genetic_risk_factor} onChange={handleChange} options={YES_NO_OPTIONS} required error={errors.genetic_risk_factor} />
                             <FormField label="Blood Pressure (Diastolic)" name="blood_pressure_diastolic" value={formData.blood_pressure_diastolic} onChange={handleChange} type="number" placeholder="e.g., 80" required error={errors.blood_pressure_diastolic} />
                             <FormField label="Blood Sugar Level" name="blood_sugar_level" value={formData.blood_sugar_level} onChange={handleChange} type="number" placeholder="e.g., 90 mg/dL" />
-                            <FormField label="Food Aversions (if any)" name="food_aversion" value={formData.food_aversion} onChange={handleChange} as="textarea" placeholder="e.g., Cilantro, Mushrooms"/>
+                            <FormField label="Food Aversions (if any)" name="food_aversion" value={formData.food_aversion} onChange={handleChange} as="textarea" placeholder="e.g., Cilantro, Mushrooms" error={errors.food_aversion}/>
                         </div>
                     </div>
                 </fieldset>
