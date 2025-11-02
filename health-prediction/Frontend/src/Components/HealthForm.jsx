@@ -40,10 +40,14 @@ const initialFormData = {
 };
 
 const REQUIRED_FIELDS = [
-    'age', 'gender', 'height', 'weight', 'chronic_disease', 
-    'blood_pressure_systolic', 'blood_pressure_diastolic', 
-    'genetic_risk_factor','daily_steps', 'exercise_frequency', 'sleep_hours', 
-    'alcohol_consumption', 'smoking_habit', 'dietary_habits', 'preferred_cuisine'
+    "Age", "Gender", "Height", "Weight", "BMI",
+    "Blood_Pressure_Systolic", "Blood_Pressure_Diastolic",
+    "Cholesterol_Level", "Blood_Sugar_Level",
+    "Chronic_Disease", "Genetic_Risk_Factor",
+    "Allergies", "Food_Aversions",
+    "Daily_Steps", "Exercise_Frequency", "Sleep_Hours",
+    "Alcohol_Consumption", "Smoking_Habit",
+    "Dietary_Habits", "Preferred_Cuisine"
 ];
 
 const SectionHeader = ({ title, icon }) => (
@@ -168,29 +172,35 @@ const HealthForm = () => {
         }
 
         // Convert strings to numbers and include BMI
-        const submissionData = {
-            age: Number(formData.age),
-            gender: formData.gender,
-            height: Number(formData.height),
-            weight: Number(formData.weight),
-            bmi: bmi.value || 0,
-            blood_pressure_systolic: Number(formData.blood_pressure_systolic) || 0,
-            blood_pressure_diastolic: Number(formData.blood_pressure_diastolic) || 0,
-            cholesterol_level: Number(formData.cholesterol_level) || 0,
-            blood_sugar_level: Number(formData.blood_sugar_level) || 0,
-            chronic_disease: formData.chronic_disease || '',
-            genetic_risk_factor: formData.genetic_risk_factor || '',
-            allergies: formData.allergies || '',
-            food_aversion: formData.food_aversion || '',
-            daily_steps: Number(formData.daily_steps) || 0,
-            exercise_frequency: formData.exercise_frequency || '',
-            sleep_hours: Number(formData.sleep_hours) || 0,
-            alcohol_consumption: formData.alcohol_consumption || '',
-            smoking_habit: formData.smoking_habit || '',
-            dietary_habits: formData.dietary_habits || '',
-            preferred_cuisine: formData.preferred_cuisine || '',
-            userId: user?.id
-        };
+   const submissionData = {
+    Age: Number(formData.age),
+    Gender: formData.gender,
+    Height: Number(formData.height),
+    Weight: Number(formData.weight),
+    BMI: bmi.value || 0,
+
+    Chronic_Disease: formData.chronic_disease,
+    Blood_Pressure_Systolic: Number(formData.blood_pressure_systolic),
+    Blood_Pressure_Diastolic: Number(formData.blood_pressure_diastolic),
+
+    Cholesterol_Level: Number(formData.cholesterol_level),
+    Blood_Sugar_Level: Number(formData.blood_sugar_level),
+
+    Genetic_Risk_Factor: formData.genetic_risk_factor,
+    Allergies: formData.allergies,
+    Food_Aversions: formData.food_aversion,
+
+    Daily_Steps: Number(formData.daily_steps),
+    Exercise_Frequency: formData.exercise_frequency,
+    Sleep_Hours: Number(formData.sleep_hours),
+
+    Alcohol_Consumption: formData.alcohol_consumption,
+    Smoking_Habit: formData.smoking_habit,
+    Dietary_Habits: formData.dietary_habits,
+    Preferred_Cuisine: formData.preferred_cuisine,
+
+    userId: user?.id
+};
 
 
 
