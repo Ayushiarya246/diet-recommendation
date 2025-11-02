@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }) => {
       const res = await fetch(`${NODE_API}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ username, email, password }),
       });
 
@@ -43,6 +44,7 @@ export const AuthProvider = ({ children }) => {
       const res = await fetch(`${NODE_API}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
@@ -97,7 +99,7 @@ const submitHealthForm = async (formData, navigateToPrediction) => {
 
     // ✅ After saving → Send request to Python server
     console.log("➡️ Requesting Prediction...");
-    const predictRes = await fetch(`${NODE_API}/predict/recommendation`, {
+    const predictRes = await fetch(`${PY_API}/api/predict/recommendation`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
