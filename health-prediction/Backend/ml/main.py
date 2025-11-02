@@ -5,8 +5,6 @@ import joblib
 import pandas as pd
 import uvicorn
 import os
-import numpy as np
-from pymongo import MongoClient
 
 app = FastAPI()
 
@@ -25,18 +23,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ MongoDB Connection
-client = MongoClient(os.getenv("MONGO_URI"))
-db = client["dietDB"]
-collection = db["recommendations"]
-
 # ✅ Load ML Model + Encoders
 base_dir = os.path.dirname(__file__)
 model = joblib.load(os.path.join(base_dir, "random_forest_model.pkl"))
 meal_plan_encoder = joblib.load(os.path.join(base_dir, "meal_plan_encoder.pkl"))
 model_features = model.estimators_[0].feature_names_in_
 
-# ✅ Pydantic Input Model
+# ✅ Input Model
 class HealthInput(BaseModel):
     age: float | None = None
     gender: str | None = None
@@ -58,10 +51,10 @@ class HealthInput(BaseModel):
     smoking_habit: str | None = None
     dietary_habits: str | None = None
     preferred_cuisine: str | None = None
-    userId: int | str | None = None   # ✅ FIXED
+    userId: int | str | None = None
 
 
-# ✅ Column rename mapping (camelCase → Model format)
+# ✅ Rename mapping
 rename_map = {
     "age": "Age",
     "gender": "Gender",
@@ -85,27 +78,31 @@ rename_map = {
     "preferred_cuisine": "Preferred_Cuisine"
 }
 
+
 @app.get("/")
 def root():
     return {"message": "Diet Recommendation API ✅ Running"}
 
-# ✅ Prediction Route
+
 @app.post("/predict/recommendation")
 async def predict_recommendation(data: HealthInput):
 
     input_data = pd.DataFrame([data.dict()])
 
+    # ✅ Convert and drop userId
+    input_data["userId"] = input_data["userId"].astype(str)
     user_id = input_data["userId"].iloc[0]
     input_data.drop(columns=["userId"], inplace=True)
 
+    # ✅ Rename columns
     input_data.rename(columns=rename_map, inplace=True)
 
-    # ✅ Convert Height to CM
-    if "Height" in input_data:
+    # ✅ Height → cm
+    if "Height" in input_data.columns:
         input_data["Height_cm"] = input_data["Height"].fillna(0).astype(float) * 30.48
         input_data.drop(columns=["Height"], inplace=True)
 
-    # ✅ Ensure Required Columns for Model
+    # ✅ Ensure required features
     for col in model_features:
         if col not in input_data.columns:
             input_data[col] = 0
@@ -122,15 +119,13 @@ async def predict_recommendation(data: HealthInput):
         "Recommended_Calories": float(pred[1]),
         "Recommended_Protein": float(pred[2]),
         "Recommended_Carbs": float(pred[3]),
-        "Recommended_Fats": float(pred[4])
+        "Recommended_Fats": float(pred[4]),
     }
-
-    # ✅ Save into MongoDB
-    collection.insert_one(result)
 
     return {"success": True, "data": result}
 
-# ✅ Render Friendly Port Binding
+
+# ✅ Render Deployment
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0",
+                port=int(os.environ.get("PORT", 8000)))

@@ -1,8 +1,6 @@
 fastapi
 uvicorn
 pydantic
-sqlalchemy
-psycopg2-binary
 python-multipart
 
 numpy>=2.1.0
