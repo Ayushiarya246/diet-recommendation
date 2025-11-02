@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const NODE_API = import.meta.env.VITE_NODE_API_URL;
-const PY_API = import.meta.env.VITE_PYTHON_API_URL;
+//const PY_API = import.meta.env.VITE_PYTHON_API_URL;
 
 
 const AuthContext = createContext(undefined);
@@ -99,7 +99,7 @@ const submitHealthForm = async (formData, navigateToPrediction) => {
 
     // ✅ After saving → Send request to Python server
     console.log("➡️ Requesting Prediction...");
-    const predictRes = await fetch(`${PY_API}/api/predict/recommendation`, {
+    const predictRes = await fetch(`${NODE_API}/api/predict/recommendation`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
