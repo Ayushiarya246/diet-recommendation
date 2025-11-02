@@ -68,35 +68,38 @@ const HealthForm = () => {
     });
 
     useEffect(() => {
-        const heightValue = parseFloat(formData.height);
-        const feet = Math.floor(heightValue);
-        const inches = (heightValue - feet) * 10;
-        const heightM = (feet * 0.3048) + (inches * 0.0254);
+    const heightValue = parseFloat(formData.height);
+    const feet = Math.floor(heightValue);
+    const inches = (heightValue - feet) * 10;
+    const heightM = (feet * 0.3048) + (inches * 0.0254);
 
+    const weightKg = parseFloat(formData.weight);
 
-        if (heightM > 0 && weightKg > 0) {
-            const bmiValue = Number((weightKg / (heightM * heightM)).toFixed(1));
-            let category = '';
-            let color = '';
+    if (heightM > 0 && weightKg > 0) {
+        const bmiValue = Number((weightKg / (heightM * heightM)).toFixed(1));
+        let category = '';
+        let color = '';
 
-            if (bmiValue < 18.5) {
-                category = 'Underweight';
-                color = 'text-blue-600';
-            } else if (bmiValue < 25) {
-                category = 'Normal weight';
-                color = 'text-green-600 font-semibold';
-            } else if (bmiValue < 30) {
-                category = 'Overweight';
-                color = 'text-amber-600';
-            } else {
-                category = 'Obesity';
-                color = 'text-red-600';
-            }
-            setBmi({ value: bmiValue, category, color });
+        if (bmiValue < 18.5) {
+            category = 'Underweight';
+            color = 'text-blue-600';
+        } else if (bmiValue < 25) {
+            category = 'Normal weight';
+            color = 'text-green-600 font-semibold';
+        } else if (bmiValue < 30) {
+            category = 'Overweight';
+            color = 'text-amber-600';
         } else {
-            setBmi({ value: null, category: '', color: 'text-slate-700' });
+            category = 'Obesity';
+            color = 'text-red-600';
         }
-    }, [formData.height, formData.weight]);
+
+        setBmi({ value: bmiValue, category, color });
+    } else {
+        setBmi({ value: null, category: '', color: 'text-slate-700' });
+    }
+}, [formData.height, formData.weight]);
+
 
 
     const handleChange = useCallback((e) => {
