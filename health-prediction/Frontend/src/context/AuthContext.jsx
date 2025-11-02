@@ -1,6 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const NODE_API = import.meta.env.VITE_NODE_API_URL;
+const PY_API = import.meta.env.VITE_PYTHON_API_URL;
+
 
 const AuthContext = createContext(undefined);
 
@@ -20,7 +22,7 @@ export const AuthProvider = ({ children }) => {
   // ✅ REGISTER USER
   const register = async ({ username, email, password }) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/register`, {
+      const res = await fetch(`${NODE_API}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
@@ -38,7 +40,7 @@ export const AuthProvider = ({ children }) => {
   // ✅ LOGIN USER
   const login = async ({ email, password }) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      const res = await fetch(`${NODE_API}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -77,11 +79,11 @@ const submitHealthForm = async (formData, navigateToPrediction) => {
     const fullData = { ...formData, userId: user.id };
     console.log("➡️ Submitting Health Form:", fullData);
 
-    const res = await fetch(`${API_BASE_URL}/health/form`, {
+    const res = await fetch(`${NODE_API}/api/health/form`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify(fullData),
     });
@@ -93,15 +95,14 @@ const submitHealthForm = async (formData, navigateToPrediction) => {
       return { success: false, message: data.message || "Health data failed ❌" };
     }
 
-    // ✅ After saving health form → trigger prediction request
+    // ✅ After saving → Send request to Python server
     console.log("➡️ Requesting Prediction...");
-    const predictRes = await fetch(`${API_BASE_URL}/predict/risk`, {
+    const predictRes = await fetch(`${PY_API}/api/predict/recommendation`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}` // ✅ Token added
       },
-      body: JSON.stringify({ userId: user.id }),
+      body: JSON.stringify(formData),
     });
 
     const predictData = await predictRes.json();
@@ -111,7 +112,6 @@ const submitHealthForm = async (formData, navigateToPrediction) => {
       return { success: false, message: predictData.error || "Prediction failed ❌" };
     }
 
-    // ✅ Save prediction to context for Prediction page
     localStorage.setItem("prediction", JSON.stringify(predictData.prediction));
 
     if (navigateToPrediction) {

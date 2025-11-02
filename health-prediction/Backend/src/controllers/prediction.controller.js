@@ -1,8 +1,7 @@
 import axios from "axios";
 import { UserHealth } from "../models/index.js";
 
-const ML_SERVER_URL = "http://127.0.0.1:8000/predict/recommendation";
-
+const ML_SERVER_URL = process.env.PYTHON_API_URL;
 
 export const predictHealthRisk = async (req, res) => {
   try {
