@@ -88,8 +88,9 @@ const payload = {
 
     return res.json({
       success: true,
-      prediction: response.data.data,
+      prediction: response.data
     });
+
 
   } catch (err) {
     console.error("❌ Prediction API Error:", err.response?.data || err.message || err);
