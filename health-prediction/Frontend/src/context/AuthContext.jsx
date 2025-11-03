@@ -117,8 +117,7 @@ const submitHealthForm = async (formData, navigateToPrediction) => {
       return { success: false, message: predictData.error || "Prediction failed ❌" };
     }
 
-    localStorage.setItem("prediction", JSON.stringify(predictData.prediction));
-
+    localStorage.setItem("prediction", JSON.stringify(predictData.data));
 
     if (navigateToPrediction) {
       navigateToPrediction(`/prediction`);
