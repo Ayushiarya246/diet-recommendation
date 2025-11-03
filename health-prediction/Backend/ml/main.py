@@ -5,11 +5,10 @@ import joblib
 import pandas as pd
 import uvicorn
 import os
-import gdown  # ✅ Used to download model file from Google Drive
+import gdown
 
 app = FastAPI()
 
-# ✅ CORS
 origins = [
     "http://localhost:5173",
     "https://diet-recommendation-chi.vercel.app",
@@ -24,23 +23,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ Google Drive Direct Download Link
 MODEL_URL = "https://drive.google.com/uc?export=download&id=1luLlzq4QEqEJgJGF1L0NrE-90V-rYyje"
 
-# ✅ Auto Download if missing
 base_dir = os.path.dirname(__file__)
 model_path = os.path.join(base_dir, "random_forest_model.pkl")
 
 if not os.path.exists(model_path):
-    print("🔄 Downloading model from Google Drive...")
+    print("🔄 Downloading model file from Google Drive...")
     gdown.download(MODEL_URL, model_path, quiet=False)
 
-# ✅ Load Model + Encoders
 model = joblib.load(model_path)
 meal_plan_encoder = joblib.load(os.path.join(base_dir, "meal_plan_encoder.pkl"))
 model_features = joblib.load(os.path.join(base_dir, "model_features.pkl"))
 encoders = joblib.load(os.path.join(base_dir, "encoders.pkl"))
-
 
 class HealthInput(BaseModel):
     age: float | None = None
@@ -66,7 +61,6 @@ class HealthInput(BaseModel):
     userId: int | str | None = None
 
 
-# ✅ Rename to match training data
 rename_map = {
     "age": "Age",
     "gender": "Gender",
@@ -90,10 +84,9 @@ rename_map = {
     "preferred_cuisine": "Preferred_Cuisine"
 }
 
-
 @app.get("/")
 def root():
-    return {"message": "Diet Recommendation API ✅ Running"}
+    return {"message": "✅ Diet Recommendation API Running Successfully!"}
 
 
 @app.post("/predict/recommendation")
@@ -106,9 +99,8 @@ async def predict_recommendation(data: HealthInput):
 
     input_data.rename(columns=rename_map, inplace=True)
 
-    # ✅ Convert feet → cm
     if "Height" in input_data.columns:
-        input_data["Height_cm"] = input_data["Height"].fillna(0).astype(float) * 30.48
+        input_data["Height_cm"] = pd.to_numeric(input_data["Height"].fillna(0), errors="coerce") * 30.48
         input_data.drop(columns=["Height"], inplace=True)
 
     fill_defaults = {
@@ -118,20 +110,18 @@ async def predict_recommendation(data: HealthInput):
     }
     input_data.fillna(fill_defaults, inplace=True)
 
-    # ✅ NEW FIXED ENCODING 🔥🔥🔥
-    input_data = input_data.applymap(lambda x: x.lower() if isinstance(x, str) else x)  # ✅ convert strings to lowercase
+    input_data = input_data.applymap(lambda x: str(x).strip() if isinstance(x, str) else x)
 
     for col, encoder in encoders.items():
         if col in input_data.columns:
             input_data[col] = input_data[col].astype(str)
-            known_classes = list(encoder.classes_)
+            known_classes = set(encoder.classes_)
 
-            def encode_value(val):
-                return encoder.transform([val])[0] if val in known_classes else 0  # ✅ avoid errors
+            def encode_or_default(val):
+                return int(encoder.transform([val])[0]) if val in known_classes else 0
 
-            input_data[col] = input_data[col].apply(encode_value)
+            input_data[col] = input_data[col].apply(encode_or_default)
 
-    # ✅ Ensure all required model features exist
     for col in model_features:
         if col not in input_data.columns:
             input_data[col] = 0
@@ -139,6 +129,7 @@ async def predict_recommendation(data: HealthInput):
     input_data = input_data[model_features]
 
     pred = model.predict(input_data)[0]
+
     meal_plan = meal_plan_encoder.inverse_transform([int(pred[0])])[0]
 
     result = {
