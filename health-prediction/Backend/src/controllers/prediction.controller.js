@@ -88,9 +88,8 @@ const payload = {
 
     return res.json({
       success: true,
-      data: response.data
+      prediction: response.data
     });
-
 
 
   } catch (err) {
