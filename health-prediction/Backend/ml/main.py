@@ -5,6 +5,7 @@ import joblib
 import pandas as pd
 import uvicorn
 import os
+import gdown  # ✅ Used to download model file from Google Drive
 
 app = FastAPI()
 
@@ -12,8 +13,7 @@ app = FastAPI()
 origins = [
     "http://localhost:5173",
     "https://diet-recommendation-chi.vercel.app",
-    "https://diet-recommendation-jyx1.onrender.com",
-    "https://diet-recommendation-1-7t28.onrender.com"
+    "https://diet-recommendation-jyx1.onrender.com"
 ]
 
 app.add_middleware(
@@ -24,9 +24,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ Load Model + Artifacts
+# ✅ Google Drive Direct Download Link
+MODEL_URL = "https://drive.google.com/uc?export=download&id=1luLlzq4QEqEJgJGF1L0NrE-90V-rYyje"
+
+# ✅ Auto Download if missing
 base_dir = os.path.dirname(__file__)
-model = joblib.load(os.path.join(base_dir, "random_forest_model.pkl"))
+model_path = os.path.join(base_dir, "random_forest_model.pkl")
+
+if not os.path.exists(model_path):
+    print("🔄 Downloading model from Google Drive...")
+    gdown.download(MODEL_URL, model_path, quiet=False)
+
+# ✅ Load Model + Encoders
+model = joblib.load(model_path)
 meal_plan_encoder = joblib.load(os.path.join(base_dir, "meal_plan_encoder.pkl"))
 model_features = joblib.load(os.path.join(base_dir, "model_features.pkl"))
 encoders = joblib.load(os.path.join(base_dir, "encoders.pkl"))
@@ -56,6 +66,7 @@ class HealthInput(BaseModel):
     userId: int | str | None = None
 
 
+# ✅ Rename to match training data
 rename_map = {
     "age": "Age",
     "gender": "Gender",
@@ -89,54 +100,58 @@ def root():
 async def predict_recommendation(data: HealthInput):
 
     input_data = pd.DataFrame([data.dict()])
-    user_id = input_data.pop("userId").iloc[0]
+
+    user_id = input_data["userId"].iloc[0]
+    input_data.drop(columns=["userId"], inplace=True)
 
     input_data.rename(columns=rename_map, inplace=True)
 
-    # ✅ Convert height feet ➝ cm (if numeric & < 100 assume feet)
-    if "Height" in input_data.columns and input_data["Height"].iloc[0] < 100:
-        input_data["Height"] = input_data["Height"] * 30.48
+    # ✅ Convert feet → cm
+    if "Height" in input_data.columns:
+        input_data["Height_cm"] = input_data["Height"].fillna(0).astype(float) * 30.48
+        input_data.drop(columns=["Height"], inplace=True)
 
-    # ✅ Apply training missing-fill rules
-    input_data.fillna({"Chronic_Disease": "No disease", "Allergies": "No", "Food_Aversions": "No"}, inplace=True)
+    fill_defaults = {
+        "Chronic_Disease": "No Disease",
+        "Allergies": "No",
+        "Food_Aversions": "No"
+    }
+    input_data.fillna(fill_defaults, inplace=True)
 
-    # ✅ Apply label encoding (fallback for new categories)
+    # ✅ NEW FIXED ENCODING 🔥🔥🔥
+    input_data = input_data.applymap(lambda x: x.lower() if isinstance(x, str) else x)  # ✅ convert strings to lowercase
+
     for col, encoder in encoders.items():
         if col in input_data.columns:
-            val = input_data[col].astype(str)
-            input_data[col] = val.apply(lambda x: encoder.transform([x])[0]
-                                        if x in encoder.classes_
-                                        else encoder.transform(["Other"])[0])
+            input_data[col] = input_data[col].astype(str)
+            known_classes = list(encoder.classes_)
 
-    # ✅ Final safety convert leftover strings
-    for col in input_data.columns:
-        if input_data[col].dtype == "object":
-            input_data[col] = input_data[col].astype("category").cat.codes
+            def encode_value(val):
+                return encoder.transform([val])[0] if val in known_classes else 0  # ✅ avoid errors
 
-    # ✅ Ensure correct column alignment
+            input_data[col] = input_data[col].apply(encode_value)
+
+    # ✅ Ensure all required model features exist
     for col in model_features:
         if col not in input_data.columns:
             input_data[col] = 0
+
     input_data = input_data[model_features]
 
-    # ✅ Prediction
     pred = model.predict(input_data)[0]
-
     meal_plan = meal_plan_encoder.inverse_transform([int(pred[0])])[0]
 
-    return {
-        "success": True,
-        "data": {
-            "userId": user_id,
-            "Recommended_Meal_Plan": meal_plan,
-            "Recommended_Calories": float(pred[1]),
-            "Recommended_Protein": float(pred[2]),
-            "Recommended_Carbs": float(pred[3]),
-            "Recommended_Fats": float(pred[4])
-        }
+    result = {
+        "userId": user_id,
+        "Recommended_Meal_Plan": meal_plan,
+        "Recommended_Calories": float(pred[1]),
+        "Recommended_Protein": float(pred[2]),
+        "Recommended_Carbs": float(pred[3]),
+        "Recommended_Fats": float(pred[4]),
     }
+
+    return {"success": True, "data": result}
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0",
-                port=int(os.environ.get("PORT", 8000)))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
