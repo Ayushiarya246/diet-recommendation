@@ -97,62 +97,60 @@ async def predict_recommendation(data: HealthInput):
 
     input_data = pd.DataFrame([data.dict()])
 
+    user_id = input_data["userId"].iloc[0]
+    input_data.drop(columns=["userId"], inplace=True)
 
-    # ✅ Extract userId separately
-    user_id = input_data.get("userId", [None])[0]
-    if "userId" in input_data.columns:
-        input_data.drop(columns=["userId"], inplace=True)
-
-    # ✅ Rename columns to match training
     input_data.rename(columns=rename_map, inplace=True)
 
-    # ✅ Ensure Height exists
-    if "Height_cm" not in input_data.columns:
-        input_data["Height_cm"] = 0
+    # ✅ Safe height conversion
+    if "Height" in input_data.columns:
+        input_data["Height_cm"] = pd.to_numeric(input_data["Height"], errors="coerce").fillna(0)
+        input_data.drop(columns=["Height"], inplace=True)
 
-    # ✅ Fill missing values like training
-    input_data.fillna({
+    # ✅ Default missing categorical fields
+    categorical_defaults = {
         "Chronic_Disease": "No Disease",
         "Allergies": "No",
         "Food_Aversions": "No",
         "Exercise_Frequency": "No"
-    }, inplace=True)
+    }
+    input_data.fillna(categorical_defaults, inplace=True)
 
-    # ✅ Trim strings
-    input_data = input_data.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+    # ✅ Replace deprecated applymap
+    input_data = input_data.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
 
-    # ✅ Safe categorical encoding
+    # ✅ Encode categorical
     for col, encoder in encoders.items():
         if col in input_data.columns:
-            input_data[col] = input_data[col].astype(str).apply(
-                lambda v: encoder.transform([v])[0] if v in encoder.classes_ else 0
-            )
+            val = input_data[col].astype(str)
+            allowed = set(encoder.classes_)
+            input_data[col] = val.apply(lambda v: encoder.transform([v])[0] if v in allowed else 0)
 
-    # ✅ Ensure required features exist
+    # ✅ Ensure all required features exist
     for col in model_features:
         if col not in input_data.columns:
             input_data[col] = 0
 
     input_data = input_data[model_features]
 
-    # ✅ Model prediction
+    # ✅ Prediction
     pred = model.predict(input_data)[0]
+    pred = pred.astype(float)  # ✅ Convert numpy array to python floats
 
-    # ✅ Convert numpy → python
-    pred = [p.item() if isinstance(p, np.generic) else p for p in pred]
-
+    # ✅ Decode meal plan class index
     meal_plan = meal_plan_encoder.inverse_transform([int(pred[0])])[0]
 
     result = {
         "userId": user_id,
         "Recommended_Meal_Plan": meal_plan,
-        "Recommended_Calories": pred[1],
-        "Recommended_Protein": pred[2],
-        "Recommended_Carbs": pred[3],
-        "Recommended_Fats": pred[4],
+        "Recommended_Calories": float(pred[1]),
+        "Recommended_Protein": float(pred[2]),
+        "Recommended_Carbs": float(pred[3]),
+        "Recommended_Fats": float(pred[4]),
     }
 
-    return {"success": True, "prediction": result}
+    return {"success": True, "data": result}
+
 
 
 if __name__ == "__main__":
