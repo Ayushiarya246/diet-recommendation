@@ -64,7 +64,7 @@ class HealthInput(BaseModel):
 rename_map = {
     "age": "Age",
     "gender": "Gender",
-    "height": "Height",
+    "height": "Height_cm",
     "weight": "Weight",
     "bmi": "BMI",
     "blood_pressure_systolic": "Blood_Pressure_Systolic",
@@ -99,29 +99,31 @@ async def predict_recommendation(data: HealthInput):
 
     input_data.rename(columns=rename_map, inplace=True)
 
+    # ✅ Safe height conversion
     if "Height" in input_data.columns:
-        input_data["Height_cm"] = pd.to_numeric(input_data["Height"].fillna(0), errors="coerce") * 30.48
+        input_data["Height_cm"] = pd.to_numeric(input_data["Height"], errors="coerce").fillna(0)
         input_data.drop(columns=["Height"], inplace=True)
 
-    fill_defaults = {
+    # ✅ Default values for categorical fields
+    categorical_defaults = {
         "Chronic_Disease": "No Disease",
         "Allergies": "No",
-        "Food_Aversions": "No"
+        "Food_Aversions": "No",
+        "Exercise_Frequency": "No"
     }
-    input_data.fillna(fill_defaults, inplace=True)
+    input_data.fillna(categorical_defaults, inplace=True)
 
+    # ✅ Trim strings
     input_data = input_data.applymap(lambda x: str(x).strip() if isinstance(x, str) else x)
 
+    # ✅ Encode categorical values safely
     for col, encoder in encoders.items():
         if col in input_data.columns:
-            input_data[col] = input_data[col].astype(str)
-            known_classes = set(encoder.classes_)
+            val = input_data[col].astype(str)
+            allowed = set(encoder.classes_)
+            input_data[col] = val.apply(lambda v: encoder.transform([v])[0] if v in allowed else 0)
 
-            def encode_or_default(val):
-                return int(encoder.transform([val])[0]) if val in known_classes else 0
-
-            input_data[col] = input_data[col].apply(encode_or_default)
-
+    # ✅ Ensure all expected features exist
     for col in model_features:
         if col not in input_data.columns:
             input_data[col] = 0
@@ -129,7 +131,6 @@ async def predict_recommendation(data: HealthInput):
     input_data = input_data[model_features]
 
     pred = model.predict(input_data)[0]
-
     meal_plan = meal_plan_encoder.inverse_transform([int(pred[0])])[0]
 
     result = {
