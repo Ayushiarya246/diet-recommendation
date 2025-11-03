@@ -39,3 +39,7 @@ env/
 # Uncomment when uploading models manually to Render dashboard
 # random_forest_model.pkl
 # meal_plan_encoder.pkl
+
+
+*.pkl
+health-prediction/Backend/ml/*.pkl
