@@ -13,6 +13,7 @@ with zipfile.ZipFile(zip_path, 'r') as zip_ref:
 
 csv_path = os.path.join(os.path.dirname(__file__), "Personalized_Diet_Recommendations.csv")
 df = pd.read_csv(csv_path)
+print("✅ CSV Loaded: ", df.shape)
 
 # ✅ Fill missing values same as backend
 df['Chronic_Disease'] = df['Chronic_Disease'].fillna('No Disease')
@@ -57,7 +58,8 @@ y_pred = model.predict(X_test)
 print("✅ MAE:", mean_absolute_error(y_test, y_pred))
 print("✅ R2 Score:", r2_score(y_test, y_pred))
 
-joblib.dump(model, "random_forest_model.pkl")
+joblib.dump(model, "random_forest_model.pkl", compress=3)
+
 joblib.dump(meal_plan_encoder, "meal_plan_encoder.pkl")
 joblib.dump(X_train.columns.tolist(), "model_features.pkl")
 joblib.dump(encoders, "encoders.pkl")  # ✅ REQUIRED for backend
