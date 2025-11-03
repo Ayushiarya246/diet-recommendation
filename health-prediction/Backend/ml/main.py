@@ -5,6 +5,7 @@ import joblib
 import pandas as pd
 import uvicorn
 import os
+import gdown  # ✅ Used to download model file from Google Drive
 
 app = FastAPI()
 
@@ -23,13 +24,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ Load Model + Feature Columns
+# ✅ Google Drive Direct Download Link
+MODEL_URL = "https://drive.google.com/uc?export=download&id=1luLlzq4QEqEJgJGF1L0NrE-90V-rYyje"
+
+# ✅ Auto Download if missing
 base_dir = os.path.dirname(__file__)
-model = joblib.load(os.path.join(base_dir, "random_forest_model.pkl"))
+model_path = os.path.join(base_dir, "random_forest_model.pkl")
+
+if not os.path.exists(model_path):
+    print("🔄 Downloading model from Google Drive...")
+    gdown.download(MODEL_URL, model_path, quiet=False)
+
+# ✅ Load Model + Encoders
+model = joblib.load(model_path)
 meal_plan_encoder = joblib.load(os.path.join(base_dir, "meal_plan_encoder.pkl"))
 model_features = joblib.load(os.path.join(base_dir, "model_features.pkl"))
-
-# 🔥 FIX: Load all categorical encoders used during training
 encoders = joblib.load(os.path.join(base_dir, "encoders.pkl"))
 
 
@@ -73,7 +82,7 @@ rename_map = {
     "allergies": "Allergies",
     "food_aversion": "Food_Aversions",
     "daily_steps": "Daily_Steps",
-    "exercise_frequency": "Exercise_Frequency",  # 🔥 FIX included
+    "exercise_frequency": "Exercise_Frequency",
     "sleep_hours": "Sleep_Hours",
     "alcohol_consumption": "Alcohol_Consumption",
     "smoking_habit": "Smoking_Habit",
@@ -92,19 +101,16 @@ async def predict_recommendation(data: HealthInput):
 
     input_data = pd.DataFrame([data.dict()])
 
-    # ✅ Convert and drop userId
     user_id = input_data["userId"].iloc[0]
     input_data.drop(columns=["userId"], inplace=True)
 
-    # ✅ Rename columns to training names
     input_data.rename(columns=rename_map, inplace=True)
 
-    # ✅ Height → convert feet to centimeters
+    # ✅ Convert feet → cm
     if "Height" in input_data.columns:
         input_data["Height_cm"] = input_data["Height"].fillna(0).astype(float) * 30.48
         input_data.drop(columns=["Height"], inplace=True)
 
-    # ✅ Handle missing values like training
     fill_defaults = {
         "Chronic_Disease": "No Disease",
         "Allergies": "No",
@@ -112,21 +118,18 @@ async def predict_recommendation(data: HealthInput):
     }
     input_data.fillna(fill_defaults, inplace=True)
 
-    # 🔥 FIX: Apply label encoding to categorical columns
     for col, encoder in encoders.items():
         if col in input_data.columns:
             try:
                 input_data[col] = encoder.transform(input_data[col].astype(str))
             except:
-                input_data[col] = 0  # fallback for unseen category
+                input_data[col] = 0
 
-    # ✅ Ensure correct feature order
     for col in model_features:
         if col not in input_data.columns:
             input_data[col] = 0
     input_data = input_data[model_features]
 
-    # ✅ Predict
     pred = model.predict(input_data)[0]
     meal_plan = meal_plan_encoder.inverse_transform([int(pred[0])])[0]
 
@@ -142,7 +145,6 @@ async def predict_recommendation(data: HealthInput):
     return {"success": True, "data": result}
 
 
-# ✅ Render Deployment
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0",
                 port=int(os.environ.get("PORT", 8000)))
