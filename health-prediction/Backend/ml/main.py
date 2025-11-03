@@ -147,7 +147,7 @@ async def predict_recommendation(data: HealthInput):
 
     # ✅ Prepare final API-safe response
     result = {
-        
+        "userId": user_id,
         "Recommended_Meal_Plan": str(meal_plan),
         "Recommended_Calories": float(pred[1]),
         "Recommended_Protein": float(pred[2]),

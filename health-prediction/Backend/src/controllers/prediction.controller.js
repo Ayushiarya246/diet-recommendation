@@ -88,7 +88,7 @@ const payload = {
 
     return res.json({
       success: true,
-      prediction: response.data
+      prediction: response.data,
     });
 
 

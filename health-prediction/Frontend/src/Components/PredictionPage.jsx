@@ -1,12 +1,8 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-
 
 const ResultPage = () => {
   const prediction = JSON.parse(localStorage.getItem("prediction"));
   const [darkMode, setDarkMode] = useState(false);
-  const navigate = useNavigate();
-
 
   if (!prediction) {
     return (
@@ -102,10 +98,10 @@ const ResultPage = () => {
         {/* Back Button */}
         <button
           className="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition font-semibold shadow-md"
-          onClick={() => navigate("/")}>
+          onClick={() => (window.location.href = "/")}
+        >
           Go Back 🔙
         </button>
-
       </div>
 
       {/* Animation Utilities */}
