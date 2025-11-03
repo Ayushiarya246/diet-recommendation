@@ -6,6 +6,7 @@ import pandas as pd
 import uvicorn
 import os
 import gdown
+import numpy as np
 
 app = FastAPI()
 
@@ -24,10 +25,10 @@ app.add_middleware(
 )
 
 MODEL_URL = "https://drive.google.com/uc?export=download&id=1luLlzq4QEqEJgJGF1L0NrE-90V-rYyje"
-
 base_dir = os.path.dirname(__file__)
 model_path = os.path.join(base_dir, "random_forest_model.pkl")
 
+# ✅ Download model if not exists
 if not os.path.exists(model_path):
     print("🔄 Downloading model file from Google Drive...")
     gdown.download(MODEL_URL, model_path, quiet=False)
@@ -61,6 +62,7 @@ class HealthInput(BaseModel):
     userId: int | str | None = None
 
 
+# ✅ Column renaming (matches training)
 rename_map = {
     "age": "Age",
     "gender": "Gender",
@@ -84,6 +86,7 @@ rename_map = {
     "preferred_cuisine": "Preferred_Cuisine"
 }
 
+
 @app.get("/")
 def root():
     return {"message": "✅ Diet Recommendation API Running Successfully!"}
@@ -94,55 +97,62 @@ async def predict_recommendation(data: HealthInput):
 
     input_data = pd.DataFrame([data.dict()])
 
-    user_id = input_data["userId"].iloc[0]
-    input_data.drop(columns=["userId"], inplace=True)
 
+    # ✅ Extract userId separately
+    user_id = input_data.get("userId", [None])[0]
+    if "userId" in input_data.columns:
+        input_data.drop(columns=["userId"], inplace=True)
+
+    # ✅ Rename columns to match training
     input_data.rename(columns=rename_map, inplace=True)
 
-    # ✅ Safe height conversion
-    if "Height" in input_data.columns:
-        input_data["Height_cm"] = pd.to_numeric(input_data["Height"], errors="coerce").fillna(0)
-        input_data.drop(columns=["Height"], inplace=True)
+    # ✅ Ensure Height exists
+    if "Height_cm" not in input_data.columns:
+        input_data["Height_cm"] = 0
 
-    # ✅ Default values for categorical fields
-    categorical_defaults = {
+    # ✅ Fill missing values like training
+    input_data.fillna({
         "Chronic_Disease": "No Disease",
         "Allergies": "No",
         "Food_Aversions": "No",
         "Exercise_Frequency": "No"
-    }
-    input_data.fillna(categorical_defaults, inplace=True)
+    }, inplace=True)
 
     # ✅ Trim strings
-    input_data = input_data.applymap(lambda x: str(x).strip() if isinstance(x, str) else x)
+    input_data = input_data.applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
-    # ✅ Encode categorical values safely
+    # ✅ Safe categorical encoding
     for col, encoder in encoders.items():
         if col in input_data.columns:
-            val = input_data[col].astype(str)
-            allowed = set(encoder.classes_)
-            input_data[col] = val.apply(lambda v: encoder.transform([v])[0] if v in allowed else 0)
+            input_data[col] = input_data[col].astype(str).apply(
+                lambda v: encoder.transform([v])[0] if v in encoder.classes_ else 0
+            )
 
-    # ✅ Ensure all expected features exist
+    # ✅ Ensure required features exist
     for col in model_features:
         if col not in input_data.columns:
             input_data[col] = 0
 
     input_data = input_data[model_features]
 
+    # ✅ Model prediction
     pred = model.predict(input_data)[0]
+
+    # ✅ Convert numpy → python
+    pred = [p.item() if isinstance(p, np.generic) else p for p in pred]
+
     meal_plan = meal_plan_encoder.inverse_transform([int(pred[0])])[0]
 
     result = {
         "userId": user_id,
         "Recommended_Meal_Plan": meal_plan,
-        "Recommended_Calories": float(pred[1]),
-        "Recommended_Protein": float(pred[2]),
-        "Recommended_Carbs": float(pred[3]),
-        "Recommended_Fats": float(pred[4]),
+        "Recommended_Calories": pred[1],
+        "Recommended_Protein": pred[2],
+        "Recommended_Carbs": pred[3],
+        "Recommended_Fats": pred[4],
     }
 
-    return {"success": True, "data": result}
+    return {"success": True, "prediction": result}
 
 
 if __name__ == "__main__":
