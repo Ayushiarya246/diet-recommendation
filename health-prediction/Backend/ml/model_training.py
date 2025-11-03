@@ -40,14 +40,15 @@ for col in label_cols:
     encoders[col] = le
 
 # ✅ Define Features & Target
+
+y = df[['Recommended_Meal_Plan', 'Recommended_Calories',
+        'Recommended_Protein', 'Recommended_Carbs', 'Recommended_Fats']].copy()
+
 X = df.drop(columns=[
     'Patient_ID', 'Recommended_Meal_Plan',
     'Recommended_Calories', 'Recommended_Protein',
     'Recommended_Carbs', 'Recommended_Fats'
 ])
-
-y = df[['Recommended_Meal_Plan', 'Recommended_Calories',
-        'Recommended_Protein', 'Recommended_Carbs', 'Recommended_Fats']].copy()
 
 # ✅ Encode Meal Plan output
 meal_plan_encoder = LabelEncoder()

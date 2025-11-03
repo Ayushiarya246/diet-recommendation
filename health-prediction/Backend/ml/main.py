@@ -96,7 +96,7 @@ def root():
 async def predict_recommendation(data: HealthInput):
     input_data = pd.DataFrame([data.dict()])
 
-    # ✅ Extract and convert userId
+    # ✅ Extract User ID safely and convert to Python int
     user_id = input_data.get("userId", [0])[0]
     try:
         user_id = int(user_id)
@@ -104,45 +104,50 @@ async def predict_recommendation(data: HealthInput):
         user_id = 0
     input_data.drop(columns=["userId"], inplace=True)
 
-    # ✅ Rename columns
     input_data.rename(columns=rename_map, inplace=True)
 
-    # ✅ Convert height, weight etc. to numeric
-    numeric_cols = ["Age", "Height_cm", "Weight", "BMI",
-                    "Blood_Pressure_Systolic", "Blood_Pressure_Diastolic",
-                    "Cholesterol_Level", "Blood_Sugar_Level",
-                    "Daily_Steps", "Sleep_Hours"]
+    # ✅ Convert Height correctly if present
+    if "height" in data.dict() and input_data.get("Height_cm", None) is None:
+        input_data["Height_cm"] = pd.to_numeric(data.height, errors="coerce")
 
-    for col in numeric_cols:
-        if col in input_data.columns:
-            input_data[col] = pd.to_numeric(input_data[col], errors="coerce").fillna(0)
+    # ✅ Replace missing categorical data with defaults
+    categorical_defaults = {
+        "Chronic_Disease": "No Disease",
+        "Allergies": "No",
+        "Food_Aversions": "No",
+        "Exercise_Frequency": "No"
+    }
+    input_data.fillna(categorical_defaults, inplace=True)
 
-    # ✅ Fill missing categorical values
+    # ✅ Fix deprecated behavior
     for col in input_data.select_dtypes(include=["object"]).columns:
-        input_data[col] = input_data[col].fillna("Unknown").astype(str).str.strip()
+        input_data[col] = input_data[col].str.strip()
 
-    # ✅ Encode categorical fields
+    # ✅ Label encode categorical fields
     for col, encoder in encoders.items():
         if col in input_data.columns:
             allowed = set(encoder.classes_)
-            input_data[col] = input_data[col].apply(
+            input_data[col] = input_data[col].astype(str).apply(
                 lambda v: encoder.transform([v])[0] if v in allowed else 0
             )
 
-    # ✅ Add missing model columns
+    # ✅ Ensure all model features exist
     for col in model_features:
         if col not in input_data.columns:
             input_data[col] = 0
 
     input_data = input_data[model_features]
 
-    # ✅ Predict result
-    pred = model.predict(input_data)[0]
-    meal_plan_index = int(round(pred[0]))
+    # ✅ Make prediction
+    pred = model.predict(input_data)[0].astype(float)
+
+    # ✅ Decode meal plan class
+    meal_plan_index = int(pred[0])
     meal_plan = meal_plan_encoder.inverse_transform([meal_plan_index])[0]
 
+    # ✅ Prepare final API-safe response
     result = {
-        "userId": user_id,
+        
         "Recommended_Meal_Plan": str(meal_plan),
         "Recommended_Calories": float(pred[1]),
         "Recommended_Protein": float(pred[2]),
@@ -150,8 +155,10 @@ async def predict_recommendation(data: HealthInput):
         "Recommended_Fats": float(pred[4]),
     }
 
-    return {"success": True, "data": result}
+    # ✅ Final JSON safe return
+    result = {k: (v.item() if hasattr(v, "item") else v) for k, v in result.items()}
 
+    return {"success": True, "data": result}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
