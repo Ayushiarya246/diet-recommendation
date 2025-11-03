@@ -2,7 +2,7 @@
 import axios from "axios";
 import { UserHealth } from "../models/index.js";
 
-const ML_SERVER_BASE = process.env.PYTHON_API_URL || process.env.ML_SERVER_URL || "https://diet-recommendation-1-7t28.onrender.com";
+const ML_SERVER_BASE = process.env.PYTHON_API_URL || "https://diet-recommendation-1-7t28.onrender.com";
 
 function makeMlUrl(base) {
   if (!base) return "https://diet-recommendation-1-7t28.onrender.com/predict/recommendation";

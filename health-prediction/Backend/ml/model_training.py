@@ -39,7 +39,8 @@ X = df.drop(columns=[
 ])
 
 y = df[['Recommended_Meal_Plan', 'Recommended_Calories',
-        'Recommended_Protein', 'Recommended_Carbs', 'Recommended_Fats']]
+        'Recommended_Protein', 'Recommended_Carbs', 'Recommended_Fats']].copy()
+
 
 meal_plan_encoder = LabelEncoder()
 y['Recommended_Meal_Plan'] = meal_plan_encoder.fit_transform(y['Recommended_Meal_Plan'])
@@ -58,4 +59,6 @@ print("✅ R2 Score:", r2_score(y_test, y_pred))
 
 joblib.dump(model, "random_forest_model.pkl")
 joblib.dump(meal_plan_encoder, "meal_plan_encoder.pkl")
-joblib.dump(encoders, "feature_encoders.pkl")
+joblib.dump(X_train.columns.tolist(), "model_features.pkl")
+joblib.dump(encoders, "encoders.pkl")  # ✅ REQUIRED for backend
+

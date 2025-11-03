@@ -23,13 +23,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ Load ML Model + Encoders
+# ✅ Load Model + Feature Columns
 base_dir = os.path.dirname(__file__)
 model = joblib.load(os.path.join(base_dir, "random_forest_model.pkl"))
 meal_plan_encoder = joblib.load(os.path.join(base_dir, "meal_plan_encoder.pkl"))
-model_features = model.estimators_[0].feature_names_in_
+model_features = joblib.load(os.path.join(base_dir, "model_features.pkl"))
 
-# ✅ Input Model
+# 🔥 FIX: Load all categorical encoders used during training
+encoders = joblib.load(os.path.join(base_dir, "encoders.pkl"))
+
+
 class HealthInput(BaseModel):
     age: float | None = None
     gender: str | None = None
@@ -54,7 +57,7 @@ class HealthInput(BaseModel):
     userId: int | str | None = None
 
 
-# ✅ Rename mapping
+# ✅ Rename to match training data
 rename_map = {
     "age": "Age",
     "gender": "Gender",
@@ -70,7 +73,7 @@ rename_map = {
     "allergies": "Allergies",
     "food_aversion": "Food_Aversions",
     "daily_steps": "Daily_Steps",
-    "exercise_frequency": "Exercise_Frequency",
+    "exercise_frequency": "Exercise_Frequency",  # 🔥 FIX included
     "sleep_hours": "Sleep_Hours",
     "alcohol_consumption": "Alcohol_Consumption",
     "smoking_habit": "Smoking_Habit",
@@ -90,23 +93,37 @@ async def predict_recommendation(data: HealthInput):
     input_data = pd.DataFrame([data.dict()])
 
     # ✅ Convert and drop userId
-    input_data["userId"] = input_data["userId"].astype(str)
     user_id = input_data["userId"].iloc[0]
     input_data.drop(columns=["userId"], inplace=True)
 
-    # ✅ Rename columns
+    # ✅ Rename columns to training names
     input_data.rename(columns=rename_map, inplace=True)
 
-    # ✅ Height → cm
+    # ✅ Height → convert feet to centimeters
     if "Height" in input_data.columns:
         input_data["Height_cm"] = input_data["Height"].fillna(0).astype(float) * 30.48
         input_data.drop(columns=["Height"], inplace=True)
 
-    # ✅ Ensure required features
+    # ✅ Handle missing values like training
+    fill_defaults = {
+        "Chronic_Disease": "No Disease",
+        "Allergies": "No",
+        "Food_Aversions": "No"
+    }
+    input_data.fillna(fill_defaults, inplace=True)
+
+    # 🔥 FIX: Apply label encoding to categorical columns
+    for col, encoder in encoders.items():
+        if col in input_data.columns:
+            try:
+                input_data[col] = encoder.transform(input_data[col].astype(str))
+            except:
+                input_data[col] = 0  # fallback for unseen category
+
+    # ✅ Ensure correct feature order
     for col in model_features:
         if col not in input_data.columns:
             input_data[col] = 0
-
     input_data = input_data[model_features]
 
     # ✅ Predict
